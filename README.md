@@ -67,6 +67,62 @@ import Anuncio from '../models/Chat';
 import Anuncio from '../models/Mensaje';
 import Anuncio from '../models/Notificacion';
 
+Manejo de Errores
+-----------------
+
+Se implementó un sistema de manejo de errores utilizando clases de error personalizadas. Estas clases se encuentran en src/utils/errors.ts e incluyen:
+
+*   AppError: Error base personalizado
+    
+*   NotFoundError: Para recursos no encontrados (404)
+    
+*   BadRequestError: Para solicitudes inválidas (400)
+    
+*   UnauthorizedError: Para errores de autenticación (401)
+    
+*   ForbiddenError: Para errores de autorización (403)
+    
+*   ConflictError: Para conflictos con el estado actual (409)
+    
+
+Para usar estos errores en tus controladores:
+
+import { BadRequestError, NotFoundError } from '../utils/errors';
+
+// ...
+
+if (algunaCondicion) {
+  throw new BadRequestError('Mensaje de error');
+}
+
+Documentación API
+-----------------
+
+La documentación de la API está disponible a través de Swagger UI. Puedes acceder a ella en:
+
+http://localhost:3000/api-docs
+
+
+Seguridad
+---------
+
+Se ha  implementado varias medidas de seguridad:
+
+*   Uso de Helmet para proteger la aplicación configurando varios encabezados HTTP
+    
+*   Implementación de CORS para controlar el acceso desde diferentes orígenes
+    
+*   Uso de bcrypt para el hash de contraseñas
+    
+*   Autenticación mediante JWT (JSON Web Tokens)
+    
+
+Logging
+-------
+
+Utiliza Morgan para el logging de las solicitudes HTTP, lo que facilita el debugging y monitoreo del servidor.
+
+
 
 ## Contribuir
 
