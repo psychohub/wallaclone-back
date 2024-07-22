@@ -28,14 +28,11 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const nuevoUsuario = new Usuario({ nombre, email, contraseña });
     await nuevoUsuario.save();
-
-    const token = jwt.sign({ userId: nuevoUsuario._id }, JWT_SECRET, { expiresIn: '1d' });
-
+    
     res.status(201).json({
-      success: true,
-      token,
+      message: 'Usuario registrado exitosamente',
       userId: nuevoUsuario._id,
-      name: nuevoUsuario.nombre,
+      nombre: nuevoUsuario.nombre,
       email: nuevoUsuario.email
     });
   } catch (error) {
