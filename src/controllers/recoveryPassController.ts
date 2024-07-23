@@ -25,6 +25,9 @@ export const recoveryPass = async (
       const url = '/restablecer-contrasena/' + token;
       SendRecoveryPassUrl(url);
     }
+    res
+      .status(200)
+      .send({ message: 'Se le enviara un email con la url para recuperar su contraseña' });
   } catch (error) {
     next(error);
   }
