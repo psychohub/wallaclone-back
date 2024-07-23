@@ -3,6 +3,6 @@ import { recoveryPass } from '../controllers/recoveryPassController';
 
 const router = express.Router();
 
-router.post('/recuperar-contraseña', recoveryPass);
+router.post('/', recoveryPass);
 
 export default router;

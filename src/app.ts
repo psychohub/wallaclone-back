@@ -43,7 +43,7 @@ connectDB();
 
 // Rutas
 app.use('/api/auth', authRoutes);
-app.use('/api/recuperar-contraseña', recoveryPass);
+app.use('/api/recuperar-contrasena', recoveryPass);
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
