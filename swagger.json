@@ -70,7 +70,7 @@
         }
       }
     },
-    "/api/recuperar-contraseña": {
+    "/api/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
         "tags": ["Recuperacion de contraseña"],
