@@ -19,14 +19,12 @@ export const recoveryPass = async (
     const { email } = req.body;
 
     const usuarioExistente = await Usuario.findOne({ $or: [{ email }] });
-    if (!usuarioExistente) {
-      throw new NotFoundError('Usuario con email ' + email + ' no encontrado');
+    if (usuarioExistente) {
+      const token = jwt.sign({}, JWT_SECRET, { mutatePayload: true, expiresIn: '5m' });
+
+      const url = '/restablecer-contrasena/' + token;
+      SendRecoveryPassUrl(url);
     }
-
-    const token = jwt.sign({}, JWT_SECRET, { mutatePayload: true, expiresIn: '5m' });
-
-    const url = '/restablecer-contrasena/' + token;
-    SendRecoveryPassUrl(url);
   } catch (error) {
     next(error);
   }
