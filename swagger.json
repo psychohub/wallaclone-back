@@ -70,7 +70,75 @@
         }
       }
     },
-    "/api/recuperar-contrasena": {
+    "/api/auth/login": {
+      "post": {
+        "summary": "Iniciar sesión de usuario",
+        "tags": ["Autenticación"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["nombre", "contraseña"],
+                "properties": {
+                  "nombre": {
+                    "type": "string",
+                    "description": "Nombre de usuario"
+                  },
+                  "contraseña": {
+                    "type": "string",
+                    "description": "Contraseña del usuario"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "usuario": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "nombre": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación"
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "/api/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
         "tags": ["Recuperacion de contraseña"],

@@ -11,6 +11,7 @@ interface IUsuario extends Document {
     anuncio: mongoose.Schema.Types.ObjectId;
     fechaAgregado: Date;
   }>;
+  compararContraseña(contraseñaCandidata: string): Promise<boolean>;
 }
 
 const UsuarioSchema: Schema = new Schema({
@@ -47,5 +48,10 @@ UsuarioSchema.pre<IUsuario>('save', async function(next) {
   this.contraseña = await bcrypt.hash(this.contraseña, salt);
   next();
 });
+
+// Método para comparar contraseñas
+UsuarioSchema.methods.compararContraseña = async function(contraseñaCandidata: string): Promise<boolean> {
+  return bcrypt.compare(contraseñaCandidata, this.contraseña);
+};
 
 export default mongoose.model<IUsuario>('Usuario', UsuarioSchema);
