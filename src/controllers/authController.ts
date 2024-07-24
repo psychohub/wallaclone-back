@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
 import Usuario from '../models/Usuario';
-import { BadRequestError, ConflictError } from '../utils/errors';
+import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/errors';
 import { sendEmail } from '../config/email';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -43,7 +44,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       html: `<p>Hola, <b>${nuevoUsuario.nombre}</b>:</p><p>Has sido registrado exitosamente en Wallaclone.</p><p>Inicia sesión haciendo <a href="${process.env.FRONTEND_URL}/login">click aquí</a></p>.`
     };
     sendEmail(emailOptions);
-    
+
   } catch (error) {
     next(error);
   }
