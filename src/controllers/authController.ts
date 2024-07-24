@@ -48,3 +48,47 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     next(error);
   }
 };
+
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { nombre, contraseña } = req.body;
+
+    // Validar que se proporcionaron nombre y contraseña
+    if (!nombre || !contraseña) {
+      throw new BadRequestError('Nombre de usuario y contraseña son requeridos');
+    }
+
+    // Buscar el usuario por nombre
+    const usuario = await Usuario.findOne({ nombre });
+    if (!usuario) {
+      throw new UnauthorizedError('Credenciales inválidas');
+    }
+
+    // Verificar la contraseña
+    const esContraseñaValida = await usuario.compararContraseña(contraseña);
+    if (!esContraseñaValida) {
+      throw new UnauthorizedError('Credenciales inválidas');
+    }
+
+    // Generar token JWT
+    const token = jwt.sign(
+      { userId: usuario._id },
+      process.env.JWT_SECRET as string,
+      { expiresIn: '1d' }
+    );
+
+    // Enviar respuesta
+    res.json({
+      success: true,
+      token,
+      usuario: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
