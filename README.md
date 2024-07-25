@@ -122,6 +122,60 @@ Logging
 
 Utiliza Morgan para el logging de las solicitudes HTTP, lo que facilita el debugging y monitoreo del servidor.
 
+## Scripts Importantes
+
+generateAdsData.ts
+
+Este script genera datos de anuncios en la base de datos. Para ejecutarlo:
+
+npm run generateAdsData
+
+ts-node ./src/scripts/generateAdsData.ts
+
+initDB.ts
+
+Este script inicializa la base de datos. Elimina todos los datos existentes y los carga nuevamente a partir de un archivo JSON. Para ejecutarlo:
+
+npm run initDB
+
+ts-node ./src/scripts/initDB.ts
+
+## Controladores
+
+anuncioController.ts
+
+Este controlador maneja las operaciones relacionadas con los anuncios. Implementa las siguientes funcionalidades:
+
+getAnuncios: Obtiene una lista de anuncios con paginación. Utiliza el operador de agregación $facet de MongoDB para obtener los anuncios paginados y el total de anuncios en una sola consulta. También realiza un lookup para incluir la información del autor de cada anuncio.
+
+uploadImages: Maneja la carga y compresión de imágenes. Utiliza sharp para redimensionar y comprimir las imágenes subidas y redis para almacenar en caché las imágenes.
+
+Pruebas con Jest
+
+anuncioController.test.ts
+
+Se ha actualizado para probar las nuevas funcionalidades del controlador de anuncios:
+
+Lista vacía de anuncios: Verifica que la API retorne una lista vacía cuando no hay anuncios en la base de datos.
+
+Anuncios con paginación: Verifica que la API retorne anuncios correctamente paginados.
+
+Manejo de errores: Verifica que la API maneje los errores correctamente, retornando un estado 500 en caso de error.
+
+Rutas Estáticas para Servir Imágenes
+
+El servidor ahora sirve imágenes de manera estática desde la carpeta public. Además, se ha añadido una ruta específica para servir imágenes almacenadas en el servidor.
+
+Archivos Importantes
+
+app.ts
+
+Este archivo configura la aplicación Express. Incluye middleware de seguridad, manejo de CORS, logging, y configuración de rutas. También configura la documentación Swagger y el manejo global de errores.
+
+server.ts
+
+Este archivo es el punto de entrada del servidor. Conecta a la base de datos y levanta el servidor en el puerto especificado.
+
 
 
 ## Contribuir

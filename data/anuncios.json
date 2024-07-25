@@ -1,0 +1,210 @@
+[
+  {
+    "nombre": "3D Printer",
+    "imagen": "3d-printer.jpg",
+    "descripcion": "Impresora 3D de alta calidad.",
+    "precio": 800,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "printer"
+    ],
+    "autor": "66a1e7b34691c7819c0a989d",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "4K Monitor",
+    "imagen": "4k-monitor.jpg",
+    "descripcion": "Monitor 4K para profesionales.",
+    "precio": 400,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "monitor"
+    ],
+    "autor": "66a1e7b34691c7819c0a989f",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Bluetooth Speakers",
+    "imagen": "bluetooth-speakers.jpg",
+    "descripcion": "Altavoces Bluetooth con gran sonido.",
+    "precio": 100,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "audio"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a1",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Drone",
+    "imagen": "drone.jpg",
+    "descripcion": "Drone con cámara 4K.",
+    "precio": 500,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "drone"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a3",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "DSLR Camera",
+    "imagen": "dslr-camera.jpg",
+    "descripcion": "Cámara DSLR profesional.",
+    "precio": 600,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "camera"
+    ],
+    "autor": "66a1e7b34691c7819c0a989d",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "iPhone 12",
+    "imagen": "iphone12.jpg",
+    "descripcion": "iPhone 12 en excelente estado.",
+    "precio": 700,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "phone"
+    ],
+    "autor": "66a1e7b34691c7819c0a989f",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "MacBook Pro",
+    "imagen": "macbook-pro.jpg",
+    "descripcion": "MacBook Pro 2021, 16GB RAM.",
+    "precio": 1200,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "laptop"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a1",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Mechanical Keyboard",
+    "imagen": "mechanical-keyboard.jpg",
+    "descripcion": "Teclado mecánico RGB.",
+    "precio": 150,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "keyboard"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a3",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Mountain Bike",
+    "imagen": "mountain-bike.jpg",
+    "descripcion": "Bicicleta de montaña.",
+    "precio": 300,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "sports",
+      "bike"
+    ],
+    "autor": "66a1e7b34691c7819c0a989d",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Nintendo Switch",
+    "imagen": "nintendo-switch.jpg",
+    "descripcion": "Nintendo Switch con juegos.",
+    "precio": 350,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "gaming",
+      "console"
+    ],
+    "autor": "66a1e7b34691c7819c0a989f",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Office Chair",
+    "imagen": "office-chair.jpg",
+    "descripcion": "Silla de oficina ergonómica.",
+    "precio": 200,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "furniture",
+      "office"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a1",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "PS5",
+    "imagen": "ps5.jpg",
+    "descripcion": "PlayStation 5 nueva.",
+    "precio": 500,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "gaming",
+      "console"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a3",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Robot Vacuum",
+    "imagen": "robot-vacuum.jpg",
+    "descripcion": "Aspiradora robot inteligente.",
+    "precio": 250,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "home",
+      "robot"
+    ],
+    "autor": "66a1e7b34691c7819c0a989d",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Smartwatch",
+    "imagen": "smartwatch.jpg",
+    "descripcion": "Reloj inteligente con monitor de actividad.",
+    "precio": 150,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "watch"
+    ],
+    "autor": "66a1e7b34691c7819c0a989f",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Tablet",
+    "imagen": "tablet.jpg",
+    "descripcion": "Tablet de 10 pulgadas.",
+    "precio": 300,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "tablet"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a1",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  },
+  {
+    "nombre": "Wireless Headphones",
+    "imagen": "wireless-headphones.jpg",
+    "descripcion": "Auriculares inalámbricos con cancelación de ruido.",
+    "precio": 200,
+    "tipoAnuncio": "venta",
+    "tags": [
+      "tech",
+      "audio"
+    ],
+    "autor": "66a1e7b44691c7819c0a98a3",
+    "fechaPublicacion": "2024-07-25T05:50:44.170Z"
+  }
+]

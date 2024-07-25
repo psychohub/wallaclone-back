@@ -1,8 +1,9 @@
+// src/config/database.ts
 import mongoose from 'mongoose';
 
-const connectDB = async (): Promise<void> => {
+export const connectDB = async (uri: string): Promise<void> => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wallaclone');
+    await mongoose.connect(uri);
     console.log('Conectado a MongoDB');
   } catch (error) {
     console.error('Error al conectar a MongoDB:', error);
@@ -10,4 +11,6 @@ const connectDB = async (): Promise<void> => {
   }
 };
 
-export default connectDB;
+export const disconnectDB = async (): Promise<void> => {
+  await mongoose.disconnect();
+};
