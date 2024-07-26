@@ -178,6 +178,25 @@ Este archivo es el punto de entrada del servidor. Conecta a la base de datos y l
 
 
 
-## Contribuir
+## Contribución al Proyecto
 
-Por favor, asegúrate de seguir las guías de estilo ejecutando `npm run lint` antes de hacer commit de tus cambios.
+Para contribuir a este proyecto, sigue estos pasos:
+
+1. Crea una nueva rama desde 'develop' con un nombre descriptivo (ej. `feature/nueva-funcionalidad` o `bugfix/correccion-error`).
+
+2. Realiza tus cambios en esta rama.
+
+3. Haz commit de tus cambios con mensajes claros y descriptivos.
+
+4. Haz push de tu rama al repositorio.
+
+5. Crea un Pull Request (PR) para fusionar tu rama en 'develop'.
+
+6. Espera la revisión de código. Puede que se te pida realizar cambios.
+
+7. Una vez aprobado, tu PR será fusionado en 'develop'.
+
+Notas importantes:
+- No hagas push directamente a las ramas 'main' o 'develop'.
+- Asegúrate de que tu código pase todas las pruebas antes de crear un PR.
+- Mantén tus PRs lo más pequeños y enfocados posible para facilitar la revisión.

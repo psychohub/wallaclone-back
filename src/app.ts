@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import authRoutes from './routes/authRoutes';
+import recoveryPass from './routes/recoveryPass';
 import anuncioRoutes from './routes/anuncioRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './swagger.json';
@@ -21,17 +22,19 @@ const app = express();
 // Middleware
 app.use(helmet()); // Middleware de seguridad
 app.use(morgan('dev')); // Middleware de logging
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 
 // Middleware de Content Security Policy
 app.use((req, res, next) => {
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'"
+    "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'",
   );
   next();
 });
@@ -49,9 +52,10 @@ app.get('/images/:imageName', getImage);
 
 // Rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/recuperar-contrasena', recoveryPass);
 app.use('/api', anuncioRoutes);
 
-// Swagger setup 
+// Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Ruta raíz
@@ -67,15 +71,15 @@ app.use((req, res, next) => {
 // Manejo de errores global
 app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
-  
+
   const status = err.status || 500;
   const message = err.message || 'Algo salió mal';
-  
+
   res.status(status).json({
     success: false,
     status,
     message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : {}
+    stack: process.env.NODE_ENV === 'development' ? err.stack : {},
   });
 });
 
