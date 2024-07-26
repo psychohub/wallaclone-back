@@ -139,37 +139,39 @@
           }
         },
         "/api/recuperar-contrasena": {
-      "post": {
-        "summary": "Recupera la contraseña de usuario existente",
-        "tags": ["Recuperacion de contraseña"],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": ["email"],
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "Correo electrónico del usuario"
+          "post": {
+            "summary": "Recupera la contraseña de usuario existente",
+            "tags": ["Recuperacion de contraseña"],
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "required": ["email"],
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Correo electrónico del usuario"
+                      }
+                    }
                   }
                 }
               }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Peticion de recuperar contraseña correcta",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string"
+            },
+            "responses": {
+              "200": {
+                "description": "Peticion de recuperar contraseña correcta",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      }
                     }
                   }
                 }
