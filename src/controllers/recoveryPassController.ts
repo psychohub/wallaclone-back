@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import Usuario from '../models/Usuario';
 import jwt from 'jsonwebtoken';
 import { SendRecoveryPassUrl } from '../services/email/recoveryPassEmail';
-import { NotFoundError } from '../utils/errors';
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET debe definirse en variables de entorno');
@@ -20,9 +20,12 @@ export const recoveryPass = async (
 
     const usuarioExistente = await Usuario.findOne({ $or: [{ email }] });
     if (usuarioExistente) {
-      const token = jwt.sign({}, JWT_SECRET, { mutatePayload: true, expiresIn: '5m' });
+      const token = jwt.sign({ email: email }, JWT_SECRET, {
+        mutatePayload: true,
+        expiresIn: '5m',
+      });
 
-      const url = '/restablecer-contrasena/' + token;
+      const url = FRONTEND_URL + '/restablecer-contrasena/' + token;
       SendRecoveryPassUrl(url);
     }
     res
