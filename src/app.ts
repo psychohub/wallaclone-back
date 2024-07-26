@@ -14,7 +14,7 @@ import cache from './middleware/cache';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { AppError, NotFoundError } from './utils/errors';
-import { getImage } from './controllers/adController';  // Importación de la función con nombre
+import { getImage } from './controllers/imageController';  
 
 const app = express();
 
