@@ -25,7 +25,7 @@ export const recoveryPass = async (
         expiresIn: '5m',
       });
 
-      const url = FRONTEND_URL + '/restablecer-contrasena/' + token;
+      const url = FRONTEND_URL + '/restablecer-contrasena?token=' + token;
       SendRecoveryPassUrl(url);
     }
     res
