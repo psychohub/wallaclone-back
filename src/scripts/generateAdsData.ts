@@ -8,7 +8,7 @@ import { connectDB } from '../config/database';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 interface Anuncio {
   nombre: string;
