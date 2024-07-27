@@ -1,18 +1,21 @@
-import express, { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import dotenv from 'dotenv';
-import connectDB from './config/database';
-import authRoutes from './routes/authRoutes';
-import recoveryPass from './routes/recoveryPass';
-import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from '../swagger.json';
-import morgan from 'morgan';
-import helmet from 'helmet';
-import { AppError, NotFoundError } from './utils/errors';
 
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+import authRoutes from './routes/authRoutes';
+import recoveryPass from './routes/recoveryPass';
+import anuncioRoutes from './routes/anuncioRoutes';
+import swaggerUi from 'swagger-ui-express';
+import swaggerDocument from './swagger.json';
+import cache from './middleware/cache';
+import morgan from 'morgan';
+import helmet from 'helmet';
+import { AppError, NotFoundError } from './utils/errors';
+import { getImage } from './controllers/imageController';  
 
 const app = express();
 
@@ -36,14 +39,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware de caché
+app.use(cache);
+
 app.use(express.json());
 
-// Conectar a la base de datos
-connectDB();
+// Servir archivos estáticos desde la carpeta public
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Ruta para servir imágenes específicas
+app.get('/images/:imageName', getImage);
 
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/recuperar-contrasena', recoveryPass);
+app.use('/api', anuncioRoutes);
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
