@@ -5,19 +5,31 @@ Este es el backend del proyecto WallaClone, una plataforma de compraventa de art
 ## Configuración del entorno de desarrollo
 
 1. Clona el repositorio:
+
+```bash
 git clone https://github.com/psychohub/wallaclone-back.git
 cd wallaclone-back
+```
 
 2. Instala las dependencias:
-   npm install
+
+```bash
+npm install
+```
   
 3. Crea un archivo `.env` en la raíz del proyecto y añade las siguientes variables:
+
+```bash
 PORT=3000
 MONGODB_URI=mongodb://localhost:27017/wallaclone
 JWT_SECRET=eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyMTQxNTQ5OCwiaWF0IjoxNzIxNDE1NDk4fQ.DG_-L4a-Hv26nmo7VoIE4zPTDP4jsnYzBwNaAW2_QD0
+```
 
 4. Inicia el servidor de desarrollo:
+
+```bash
 npm run dev
+```
 
 5. El servidor estará corriendo en `http://localhost:3000`.
 
@@ -31,15 +43,17 @@ npm run dev
 
 ## Estructura del proyecto
 
+```javascript
 src/
-config/     # Configuraciones (base de datos, etc.)
-controllers/# Controladores de la lógica de negocio
-models/     # Modelos de MongoDB
-routes/     # Definiciones de rutas
-middleware/ # Middleware personalizado
-utils/      # Funciones de utilidad
-app.ts      # Configuración de la aplicación Express
-server.ts   # Punto de entrada del servidor
+config/      # Configuraciones (base de datos, etc.)
+controllers/ # Controladores de la lógica de negocio
+models/      # Modelos de MongoDB
+routes/      # Definiciones de rutas
+middleware/  # Middleware personalizado
+utils/       # Funciones de utilidad
+app.ts       # Configuración de la aplicación Express
+server.ts    # Punto de entrada del servidor
+```
 
 3. La conexión a la base de datos se establece automáticamente al iniciar la aplicación.
 
@@ -66,27 +80,27 @@ import Anuncio from '../models/Anuncio';
 import Anuncio from '../models/Chat';
 import Anuncio from '../models/Mensaje';
 import Anuncio from '../models/Notificacion';
+```
 
-Manejo de Errores
------------------
+## Manejo de Errores
 
 Se implementó un sistema de manejo de errores utilizando clases de error personalizadas. Estas clases se encuentran en src/utils/errors.ts e incluyen:
 
-*   AppError: Error base personalizado
-    
-*   NotFoundError: Para recursos no encontrados (404)
-    
-*   BadRequestError: Para solicitudes inválidas (400)
-    
-*   UnauthorizedError: Para errores de autenticación (401)
-    
-*   ForbiddenError: Para errores de autorización (403)
-    
-*   ConflictError: Para conflictos con el estado actual (409)
-    
+- AppError: Error base personalizado
+
+- NotFoundError: Para recursos no encontrados (404)
+
+- BadRequestError: Para solicitudes inválidas (400)
+
+- UnauthorizedError: Para errores de autenticación (401)
+
+- ForbiddenError: Para errores de autorización (403)
+
+- ConflictError: Para conflictos con el estado actual (409)
 
 Para usar estos errores en tus controladores:
 
+```javascript
 import { BadRequestError, NotFoundError } from '../utils/errors';
 
 // ...
@@ -94,63 +108,71 @@ import { BadRequestError, NotFoundError } from '../utils/errors';
 if (algunaCondicion) {
   throw new BadRequestError('Mensaje de error');
 }
+```
 
-Documentación API
------------------
+## Documentación API
 
 La documentación de la API está disponible a través de Swagger UI. Puedes acceder a ella en:
 
-http://localhost:3000/api-docs
+<http://localhost:3000/api-docs>
 
-
-Seguridad
----------
+## Seguridad
 
 Se ha  implementado varias medidas de seguridad:
 
-*   Uso de Helmet para proteger la aplicación configurando varios encabezados HTTP
-    
-*   Implementación de CORS para controlar el acceso desde diferentes orígenes
-    
-*   Uso de bcrypt para el hash de contraseñas
-    
-*   Autenticación mediante JWT (JSON Web Tokens)
-    
+- Uso de Helmet para proteger la aplicación configurando varios encabezados HTTP
 
-Logging
--------
+- Implementación de CORS para controlar el acceso desde diferentes orígenes
+
+- Uso de bcrypt para el hash de contraseñas
+
+- Autenticación mediante JWT (JSON Web Tokens)
+
+## Logging
 
 Utiliza Morgan para el logging de las solicitudes HTTP, lo que facilita el debugging y monitoreo del servidor.
 
 ## Scripts Importantes
 
-generateAdsData.ts
+### initDB.ts
+
+Este script inicializa la base de datos. Elimina todos los datos existentes y reinicia la base de datos. Para ejecutarlo:
+
+```bash
+npm run initDB
+```
+
+O, también:
+
+```bash
+ts-node ./src/scripts/initDB.ts
+```
+
+### generateAdsData.ts
 
 Este script genera datos de anuncios en la base de datos. Para ejecutarlo:
 
+```bash
 npm run generateAdsData
+```
 
+O, también:
+
+```bash
 ts-node ./src/scripts/generateAdsData.ts
-
-initDB.ts
-
-Este script inicializa la base de datos. Elimina todos los datos existentes y los carga nuevamente a partir de un archivo JSON. Para ejecutarlo:
-
-npm run initDB
-
-ts-node ./src/scripts/initDB.ts
+```
 
 ## Controladores
 
-anuncioController.ts
+### anuncioController.ts
 
 Este controlador maneja las operaciones relacionadas con los anuncios. Implementa las siguientes funcionalidades:
 
-getAnuncios: Obtiene una lista de anuncios con paginación. Utiliza el operador de agregación $facet de MongoDB para obtener los anuncios paginados y el total de anuncios en una sola consulta. También realiza un lookup para incluir la información del autor de cada anuncio.
+**getAnuncios**: Obtiene una lista de anuncios con paginación. Utiliza el operador de agregación $facet de MongoDB para obtener los anuncios paginados y el total de anuncios en una sola consulta. También realiza un lookup para incluir la información del autor de cada anuncio.
 
-uploadImages: Maneja la carga y compresión de imágenes. Utiliza sharp para redimensionar y comprimir las imágenes subidas y redis para almacenar en caché las imágenes.
+**uploadImages**: Maneja la carga y compresión de imágenes. Utiliza sharp para redimensionar y comprimir las imágenes subidas y redis para almacenar en caché las imágenes.
 
-Pruebas con Jest
+### Pruebas con Jest
 
 anuncioController.test.ts
 
@@ -166,7 +188,7 @@ Rutas Estáticas para Servir Imágenes
 
 El servidor ahora sirve imágenes de manera estática desde la carpeta public. Además, se ha añadido una ruta específica para servir imágenes almacenadas en el servidor.
 
-Archivos Importantes
+## Archivos Importantes
 
 app.ts
 
@@ -175,8 +197,6 @@ Este archivo configura la aplicación Express. Incluye middleware de seguridad, 
 server.ts
 
 Este archivo es el punto de entrada del servidor. Conecta a la base de datos y levanta el servidor en el puerto especificado.
-
-
 
 ## Contribución al Proyecto
 
@@ -197,6 +217,7 @@ Para contribuir a este proyecto, sigue estos pasos:
 7. Una vez aprobado, tu PR será fusionado en 'develop'.
 
 Notas importantes:
+
 - No hagas push directamente a las ramas 'main' o 'develop'.
 - Asegúrate de que tu código pase todas las pruebas antes de crear un PR.
 - Mantén tus PRs lo más pequeños y enfocados posible para facilitar la revisión.

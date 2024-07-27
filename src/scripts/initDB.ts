@@ -28,13 +28,13 @@ const initDB = async () => {
         console.log('Datos eliminados.');
 
         // Leer los datos del archivo JSON
-        const anunciosData = JSON.parse(
+        /*const anunciosData = JSON.parse(
           fs.readFileSync(path.join(__dirname, '../../data/anuncios.json'), 'utf-8')
         );
 
         // Insertar los nuevos anuncios
         await Anuncio.insertMany(anunciosData);
-
+        */
         console.log('Base de datos inicializada con éxito');
         mongoose.disconnect(); // Cerrar la conexión
         rl.close();
