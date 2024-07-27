@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import readline from 'readline';
 
 // Cargar variables de entorno
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -17,7 +17,7 @@ const rl = readline.createInterface({
 
 const initDB = async () => {
   try {
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/wallaclone';
+    const mongoUri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/wallaclone';
     await connectDB(mongoUri);
 
     rl.question('¿Estás seguro de que deseas eliminar todos los datos y cargarlos nuevamente? (s/n): ', async (answer) => {
@@ -26,15 +26,6 @@ const initDB = async () => {
         await Anuncio.deleteMany({});
         await Usuario.deleteMany({});
         console.log('Datos eliminados.');
-
-        // Leer los datos del archivo JSON
-        /*const anunciosData = JSON.parse(
-          fs.readFileSync(path.join(__dirname, '../../data/anuncios.json'), 'utf-8')
-        );
-
-        // Insertar los nuevos anuncios
-        await Anuncio.insertMany(anunciosData);
-        */
         console.log('Base de datos inicializada con éxito');
         mongoose.disconnect(); // Cerrar la conexión
         rl.close();
