@@ -1,13 +1,14 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { IUsuario } from './Usuario';
 
-interface IAnuncio extends Document {
+export interface IAnuncio extends Document {
   nombre: string;
   imagen: string;
   descripcion: string;
   precio: number;
   tipoAnuncio: 'venta' | 'búsqueda';
   tags: string[];
-  autor: mongoose.Schema.Types.ObjectId;
+  autor: IUsuario['_id']; 
   fechaPublicacion: Date;
 }
 
@@ -17,7 +18,7 @@ const AnuncioSchema: Schema = new Schema({
   descripcion: { type: String, required: true },
   precio: { type: Number, required: true },
   tipoAnuncio: { type: String, enum: ['venta', 'búsqueda'], required: true },
-  tags: [String],
+  tags: [{ type: String }],
   autor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
   fechaPublicacion: { type: Date, default: Date.now }
 });
