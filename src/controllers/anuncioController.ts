@@ -16,9 +16,33 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 12;
+    const { nombre, minPrecio, maxPrecio, tag, tipoAnuncio } = req.query;
     console.log(`Fetching anuncios with page: ${page}, limit: ${limit}`);
 
+    const searchCriteria: any = {};
+
+    if (nombre) {
+      searchCriteria.nombre = { $regex: nombre, $options: 'i' };
+    }
+
+    if (minPrecio) {
+      searchCriteria.precio = { $gte: Number(minPrecio) };
+    }
+
+    if (maxPrecio) {
+      searchCriteria.precio = { ...searchCriteria.precio, $lte: Number(maxPrecio) };
+    }
+
+    if (tag) {
+      searchCriteria.tags = { $regex: tag, $options: 'i' };
+    }
+
+    if (tipoAnuncio) {
+      searchCriteria.tipoAnuncio = tipoAnuncio;
+    }
+
     const pipeline: mongoose.PipelineStage[] = [
+      { $match: searchCriteria },
       {
         $facet: {
           paginatedResults: [
