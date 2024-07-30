@@ -8,9 +8,11 @@ import { BadRequestError, AppError } from '../utils/errors';
 // Configurar Redis
 const redisClient = createClient();
 
-redisClient.on('error', (err) => {
-  console.error('Redis client error', err);
-});
+redisClient
+  .on('error', (err) => {
+    console.error('Redis client error', err);
+  })
+  .connect();
 
 const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -35,9 +37,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
             },
             { $unwind: '$autor' },
           ],
-          totalCount: [
-            { $count: 'total' },
-          ],
+          totalCount: [{ $count: 'total' }],
         },
       },
       {
