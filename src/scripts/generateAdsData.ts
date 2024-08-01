@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 import Usuario from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import { connectDB } from '../config/database';
@@ -62,23 +63,37 @@ const generateData = async () => {
     await connectDB(mongoUri);
 
     // Crear usuarios
-    const usuarios = await Usuario.insertMany(usuariosData);
+    const usuariosCifrados = await Promise.all(usuariosData.map(async (usuario) => {
+      const salt = await bcrypt.genSalt(10);
+      const contraseñaCifrada = await bcrypt.hash(usuario.contraseña, salt);
+      return {
+        ...usuario,
+        contraseña: contraseñaCifrada
+      };
+    }));
+
+    const usuarios = await Usuario.insertMany(usuariosCifrados);
     console.log('Usuarios creados:', usuarios);
 
-    // Asignar un autor a cada anuncio
-    anunciosData.forEach((anuncio, index) => {
-      anuncio.autor = usuarios[index % usuarios.length]._id as Types.ObjectId;
-    });
-
     // Crear anuncios
-    const anuncios = await Anuncio.insertMany(anunciosData);
-    console.log('Anuncios creados:', anuncios);
+    const anunciosCreados = [];
+    for (let i = 0; i < anunciosData.length; i++) {
+      const anuncio = anunciosData[i];
+      const autor = usuarios[i % usuarios.length];
+      const nuevoAnuncio = new Anuncio({
+        ...anuncio,
+        autor: autor._id
+      });
+      await nuevoAnuncio.save();
+      anunciosCreados.push(nuevoAnuncio);
+    }
 
+    console.log('Anuncios creados:', anunciosCreados);
     console.log('Datos generados correctamente');
-    mongoose.disconnect(); // Cerrar la conexión
   } catch (error) {
     console.error('Error al generar datos:', error);
-    mongoose.disconnect(); // Cerrar la conexión en caso de error
+  } finally {
+    await mongoose.disconnect();
   }
 };
 

@@ -10,7 +10,7 @@ import authRoutes from './routes/authRoutes';
 import recoveryPass from './routes/recoveryPass';
 import anuncioRoutes from './routes/anuncioRoutes';
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from './swagger.json';
+import swaggerDocument from '../swagger.json';
 import cache from './middleware/cache';
 import morgan from 'morgan';
 import helmet from 'helmet';
@@ -28,7 +28,7 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
-  }),
+  })
 );
 
 // Middleware de Content Security Policy

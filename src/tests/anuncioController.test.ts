@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAnuncios, uploadImages } from '../controllers/anuncioController';
+import { getAnuncios, uploadImages, getAnunciosUsuario  } from '../controllers/anuncioController';
 import Anuncio from '../models/Anuncio';
 import Usuario from '../models/Usuario';
 import { BadRequestError, AppError } from '../utils/errors';
@@ -219,4 +219,137 @@ describe('Anuncio Controller', () => {
     expect(responseData.anuncios.length).toBe(1);
     expect(responseData.anuncios[0].tags).toContain('tag1');
   });
+
+  // ... (mantener las pruebas existentes para getAnuncios)
+
+  describe('getAnunciosUsuario', () => {
+    it('debería obtener los anuncios de un usuario específico', async () => {
+      const usuario = new Usuario({
+        nombre: 'UsuarioDePrueba', 
+        email: 'usuario@prueba.com',
+        contraseña: 'password'
+      });
+      await usuario.save();
+
+      const anuncios = [
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+      ];
+      await Anuncio.insertMany(anuncios);
+
+      const mockRequest = {
+        params: { nombreUsuario: 'UsuarioDePrueba' },
+        query: { page: '1', limit: '10' }
+      } as unknown as Request;
+      
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnunciosUsuario(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalled();
+      const responseData = mockJson.mock.calls[0][0];
+      expect(responseData.anuncios.length).toBe(2);
+      expect(responseData.total).toBe(2);
+      expect(responseData.page).toBe(1);
+      expect(responseData.totalPages).toBe(1);
+    });
+
+    it('debería manejar el caso de usuario no encontrado', async () => {
+      const mockRequest = {
+        params: { nombreUsuario: 'UsuarioInexistente' },
+        query: {}
+      } as unknown as Request;
+      
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnunciosUsuario(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(404);
+      expect(mockJson).toHaveBeenCalledWith({ message: 'Usuario no encontrado' });
+    });
+
+    it('debería filtrar anuncios de usuario por nombre', async () => {
+      const usuario = new Usuario({
+        nombre: 'UsuarioDePrueba', 
+        email: 'usuario@prueba.com',
+        contraseña: 'password'
+      });
+      await usuario.save();
+
+      const anuncios = [
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+      ];
+      await Anuncio.insertMany(anuncios);
+
+      const mockRequest = {
+        params: { nombreUsuario: 'UsuarioDePrueba' },
+        query: { nombre: 'Anuncio 1', page: '1', limit: '10' }
+      } as unknown as Request;
+      
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnunciosUsuario(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalled();
+      const responseData = mockJson.mock.calls[0][0];
+      expect(responseData.anuncios.length).toBe(1);
+      expect(responseData.anuncios[0].nombre).toBe('Anuncio 1');
+    });
+
+    it('debería ordenar anuncios de usuario', async () => {
+      const usuario = new Usuario({
+        nombre: 'UsuarioDePrueba', 
+        email: 'usuario@prueba.com',
+        contraseña: 'password'
+      });
+      await usuario.save();
+
+      const anuncios = [
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date('2023-01-01') },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date('2023-02-01') },
+      ];
+      await Anuncio.insertMany(anuncios);
+
+      const mockRequest = {
+        params: { nombreUsuario: 'UsuarioDePrueba' },
+        query: { sort: 'asc', page: '1', limit: '10' }
+      } as unknown as Request;
+      
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnunciosUsuario(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalled();
+      const responseData = mockJson.mock.calls[0][0];
+      expect(responseData.anuncios.length).toBe(2);
+      expect(responseData.anuncios[0].nombre).toBe('Anuncio 1');
+      expect(responseData.anuncios[1].nombre).toBe('Anuncio 2');
+    });
+  });
 });
+
+
