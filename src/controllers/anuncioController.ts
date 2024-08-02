@@ -3,16 +3,9 @@ import Anuncio from '../models/Anuncio';
 import { IAnuncio } from '../models/Anuncio';
 import { IUsuario } from '../models/Usuario';
 import sharp from 'sharp';
-import { createClient } from 'redis';
 import { BadRequestError, AppError } from '../utils/errors';
 import mongoose from 'mongoose';
-
-// Configurar Redis
-const redisClient = createClient();
-
-redisClient.on('error', (err) => {
-  console.error('Redis client error', err);
-});
+import redisClient from '../config/redis';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
