@@ -210,6 +210,17 @@
           "enum": ["venta", "búsqueda"]
         },
         "description": "Filtrar por tipo de anuncio (venta o búsqueda)"
+      },
+      {
+        "name": "sort",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": ["asc", "desc"],
+          "default": "desc"
+        },
+        "description": "Ordenar por fecha de publicación (asc: ascendente, desc: descendente)"
       }
     ],
     "responses": {

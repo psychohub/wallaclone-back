@@ -23,8 +23,9 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     const precioMin = minPrecio ? parseFloat(minPrecio as string) : undefined;
     const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
+    const sort = req.query.sort as string || 'desc'; 
 
-    console.log(`Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}`);
+    console.log(`Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`);
 
     const searchCriteria: any = {};
 
@@ -63,8 +64,9 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
 
     const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
 
+    const sortOrder = sort === 'asc' ? 1 : -1;
     const anuncios = await Anuncio.find(searchCriteria)
-      .sort({ fechaPublicacion: -1 })
+      .sort({ fechaPublicacion: sortOrder })
       .skip((page - 1) * limit)
       .limit(limit)
       .populate('autor', 'nombre email')
@@ -109,6 +111,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
 
 // Controlador para manejar la carga y compresión de imágenes
 const uploadImages = async (req: Request, res: Response): Promise<void> => {
