@@ -15,7 +15,7 @@ import cache from './middleware/cache';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { AppError, NotFoundError } from './utils/errors';
-import { getImage } from './controllers/imageController';  
+import { getImage } from './controllers/imageController';
 
 const app = express();
 
@@ -27,8 +27,8 @@ app.use(
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-  })
+    credentials: true,
+  }),
 );
 
 // Middleware de Content Security Policy

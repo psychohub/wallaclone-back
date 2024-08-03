@@ -1,11 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient } from 'redis';
-
-const redisClient = createClient();
-
-redisClient.on('error', (err) => {
-  console.error('Redis client error', err);
-});
+import redisClient from '../config/redis';
 
 const cache = async (req: Request, res: Response, next: NextFunction) => {
   const { url } = req;
