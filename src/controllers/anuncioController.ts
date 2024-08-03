@@ -39,10 +39,8 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     const precioMin = minPrecio ? parseFloat(minPrecio as string) : undefined;
     const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
-    const sort = req.query.sort as string || 'desc'; 
-    const sort = req.query.sort as string || 'desc'; 
+    const sort = req.query.sort as string || 'desc';
 
-    console.log(`Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`);
     console.log(`Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`);
 
     const searchCriteria: any = {};
