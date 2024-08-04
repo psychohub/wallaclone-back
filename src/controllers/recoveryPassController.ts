@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Usuario from '../models/Usuario';
 import jwt from 'jsonwebtoken';
-import { SendRecoveryPassUrl } from '../services/email/recoveryPassEmail';
+import { sendEmail } from '../config/email';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -25,8 +25,14 @@ export const recoveryPass = async (
         expiresIn: '5m',
       });
 
-      const url = FRONTEND_URL + '/restablecer-contrasena/' + token;
-      SendRecoveryPassUrl(url);
+      const emailOptions = {
+        to: email,
+        subject: 'Recuperacion de Contraseña',
+        text: `URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena/' + token}`,
+        html: `<h5>Hola</h5>
+              <p>URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena/' + token}</p>.`,
+      };
+      sendEmail(emailOptions);
     }
     res
       .status(200)
