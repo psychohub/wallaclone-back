@@ -28,9 +28,9 @@ export const recoveryPass = async (
       const emailOptions = {
         to: email,
         subject: 'Recuperacion de Contraseña',
-        text: `URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena/' + token}`,
+        text: `URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena?token=' + token}`,
         html: `<h5>Hola</h5>
-              <p>URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena/' + token}</p>.`,
+              <p>URL para reestablecer su contraseña:${FRONTEND_URL + '/restablecer-contrasena?token=' + token}</p>.`,
       };
       sendEmail(emailOptions);
     }
