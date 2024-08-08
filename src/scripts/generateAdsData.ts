@@ -7,6 +7,7 @@ import Usuario from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import { connectDB } from '../config/database';
 import dotenv from 'dotenv';
+import { createSlug } from '../utils/utils';
 
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -81,9 +82,11 @@ const generateData = async () => {
     for (let i = 0; i < anunciosData.length; i++) {
       const anuncio = anunciosData[i];
       const autor = usuarios[i % usuarios.length];
+      const slug = anuncio.nombre ? createSlug(anuncio.nombre) : '';
       const nuevoAnuncio = new Anuncio({
         ...anuncio,
-        autor: autor._id
+        autor: autor._id,
+        slug
       });
       await nuevoAnuncio.save();
       anunciosCreados.push(nuevoAnuncio);
