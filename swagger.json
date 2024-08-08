@@ -181,6 +181,57 @@
         }
       }
     },
+    "/api/restablecer-contrasena": {
+      "post": {
+        "summary": "Reestablece la contraseña de un usuario existente",
+        "tags": ["Recuperacion de contraseña"],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["contraseña"],
+                "properties": {
+                  "contraseña": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Peticion de recuperar contraseña correcta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/perfil/{nombreUsuario}/anuncios": {
       "get": {
         "summary": "Obtener anuncios de un usuario específico",
