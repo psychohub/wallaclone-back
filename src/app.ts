@@ -8,6 +8,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 import authRoutes from './routes/authRoutes';
 import recoveryPass from './routes/recoveryPass';
+import resetPass from './routes/resetPass';
 import anuncioRoutes from './routes/anuncioRoutes';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from '../swagger.json';
@@ -54,6 +55,7 @@ app.get('/images/:imageName', getImage);
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/recuperar-contrasena', recoveryPass);
+app.use('/api/restablecer-contrasena', resetPass);
 app.use('/api', anuncioRoutes);
 
 // Swagger setup
