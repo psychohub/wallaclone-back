@@ -7,7 +7,7 @@ import Usuario from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import { connectDB } from '../config/database';
 import dotenv from 'dotenv';
-import { createSlug } from '../utils/utils';
+import { createSlug } from '../utils/slug';
 
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -55,10 +55,6 @@ const anunciosData: Partial<Anuncio>[] = [
   { nombre: 'Auriculares Inalámbricos', imagen: 'wireless-headphones.jpg', descripcion: 'Auriculares inalámbricos con cancelación de ruido', precio: 180, tipoAnuncio: 'venta', tags: ['tech', 'audio'], fechaPublicacion: new Date('2024-07-16') },
 ];
 
-
-const outputDir = path.join(__dirname, '../../data');
-const outputPath = path.join(outputDir, 'anuncios.json');
-
 const generateData = async () => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/wallaclone';
@@ -82,7 +78,7 @@ const generateData = async () => {
     for (let i = 0; i < anunciosData.length; i++) {
       const anuncio = anunciosData[i];
       const autor = usuarios[i % usuarios.length];
-      const slug = anuncio.nombre ? createSlug(anuncio.nombre) : '';
+      const slug =  await createSlug(anuncio.nombre ?? '');
       const nuevoAnuncio = new Anuncio({
         ...anuncio,
         autor: autor._id,

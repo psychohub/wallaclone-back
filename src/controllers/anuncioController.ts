@@ -277,10 +277,10 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
     
     console.log(`Fetching anuncio with slug: ${slug}`);
 
-    const anuncio = await Anuncio.find({ slug: slug });
+    const anuncio = await Anuncio.findOne({ slug: slug });
 
     res.status(200).json({
-      result: anuncio[0]
+      result: anuncio
     });
   } catch (error: unknown) {
     console.error('Error al obtener el anuncio:', error);
