@@ -287,7 +287,7 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
   const token = req.headers.authorization;
   try {
-    if (typeof token !== 'string') {
+    if (!token || typeof token !== 'string') {
       throw new UnauthorizedError();
     }
     const userId = jwt.verify(token, JWT_SECRET);
