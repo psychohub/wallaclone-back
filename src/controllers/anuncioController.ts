@@ -285,18 +285,17 @@ const uploadImages = async (req: Request, res: Response): Promise<void> => {
 
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
-  console.log(anuncioId);
   const token = req.headers.authorization;
   try {
     if (typeof token !== 'string') {
       throw new UnauthorizedError();
     }
     const userId = jwt.verify(token, JWT_SECRET);
-
     const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
-      Anuncio.deleteOne({ _id: anuncioId });
+      await Anuncio.deleteOne({ _id: anuncioId });
     }
+    res.status(200).send('Anuncio eliminado correctamente');
   } catch (error: unknown) {
     console.error('Error al eliminar anuncio:', error);
     if (error instanceof Error) {
