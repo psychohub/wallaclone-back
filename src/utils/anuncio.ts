@@ -1,15 +1,16 @@
 import mongoose from 'mongoose';
 import { LeanAnuncio } from '../controllers/anuncioController';
 import Anuncio from '../models/Anuncio';
-import { JwtPayload } from 'jsonwebtoken';
 
-export const isOwner = async (anuncioId: string, userId: string | JwtPayload) => {
+export const isOwner = async (anuncioId: string, userId: any) => {
   try {
-    const anuncio: LeanAnuncio | null = await Anuncio.findById(anuncioId);
+    const anuncio: LeanAnuncio | null = await Anuncio.findById(
+      new mongoose.Types.ObjectId(anuncioId),
+    );
     if (!anuncio) {
       throw new Error('Anuncio no encontrado');
     }
-    return anuncio?.autor?._id.toString() === userId.toString();
+    return anuncio.autor?._id.toString() === userId.userId.toString();
   } catch (error) {
     console.error('Error verificando propietario del anuncio:', error);
     throw error;
