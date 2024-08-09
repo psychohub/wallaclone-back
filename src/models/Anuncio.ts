@@ -10,6 +10,7 @@ export interface IAnuncio extends Document {
   tags: string[];
   autor: IUsuario['_id']; 
   fechaPublicacion: Date;
+  slug: string;
 }
 
 const AnuncioSchema: Schema = new Schema({
@@ -20,7 +21,8 @@ const AnuncioSchema: Schema = new Schema({
   tipoAnuncio: { type: String, enum: ['venta', 'búsqueda'], required: true },
   tags: [{ type: String }],
   autor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
-  fechaPublicacion: { type: Date, default: Date.now }
+  fechaPublicacion: { type: Date, default: Date.now },
+  slug: { type: String, required: true },
 });
 
 export default mongoose.model<IAnuncio>('Anuncio', AnuncioSchema);
