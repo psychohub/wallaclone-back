@@ -3,9 +3,17 @@ import { Request, Response } from 'express';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
 import sharp from 'sharp';
-import { BadRequestError, AppError } from '../utils/errors';
+import { BadRequestError, AppError, UnauthorizedError } from '../utils/errors';
 import mongoose from 'mongoose';
 import redisClient from '../config/redis';
+import { isOwner } from '../utils/anuncio';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET debe definirse en variables de entorno');
+}
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -33,16 +41,18 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 12;
-    const nombre = req.query.nombre as string || '';
-    const tag = req.query.tag as string || '';
+    const nombre = (req.query.nombre as string) || '';
+    const tag = (req.query.tag as string) || '';
     const minPrecio = req.query.minPrecio;
     const maxPrecio = req.query.maxPrecio;
     const precioMin = minPrecio ? parseFloat(minPrecio as string) : undefined;
     const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
-    const sort = req.query.sort as string || 'desc';
+    const sort = (req.query.sort as string) || 'desc';
 
-    console.log(`Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`);
+    console.log(
+      `Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`,
+    );
 
     const searchCriteria: any = {};
 
@@ -50,7 +60,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     if (nombre) {
       searchCriteria.$or = [
         { nombre: { $regex: nombre, $options: 'i' } },
-        { descripcion: { $regex: nombre, $options: 'i' } }
+        { descripcion: { $regex: nombre, $options: 'i' } },
       ];
     }
 
@@ -98,11 +108,13 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
       precio: anuncio.precio,
       tipoAnuncio: anuncio.tipoAnuncio,
       tags: anuncio.tags,
-      autor: anuncio.autor ? {
-        _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
-        nombre: anuncio.autor.nombre,
-        email: anuncio.autor.email
-      } : null,
+      autor: anuncio.autor
+        ? {
+            _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
+            nombre: anuncio.autor.nombre,
+            email: anuncio.autor.email,
+          }
+        : null,
       fechaPublicacion: anuncio.fechaPublicacion,
     }));
 
@@ -115,34 +127,33 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   } catch (error: unknown) {
     console.error('Error al obtener los anuncios:', error);
     if (error instanceof Error) {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
+      res.status(500).json({
+        message: 'Error en el servidor',
         error: error.message,
-        stack: error.stack 
+        stack: error.stack,
       });
     } else {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
-        error: 'An unknown error occurred' 
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: 'An unknown error occurred',
       });
     }
   }
 };
-
 
 const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
     const { nombreUsuario } = req.params;
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 12;
-    const nombre = req.query.nombre as string || '';
-    const tag = req.query.tag as string || '';
+    const nombre = (req.query.nombre as string) || '';
+    const tag = (req.query.tag as string) || '';
     const minPrecio = req.query.minPrecio;
     const maxPrecio = req.query.maxPrecio;
     const precioMin = minPrecio ? parseFloat(minPrecio as string) : undefined;
     const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
-    const sort = req.query.sort as string || 'desc';
+    const sort = (req.query.sort as string) || 'desc';
 
     const usuario = await Usuario.findOne({ nombre: nombreUsuario });
     if (!usuario) {
@@ -150,7 +161,9 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    console.log(`Fetching anuncios for user ${nombreUsuario} with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`);
+    console.log(
+      `Fetching anuncios for user ${nombreUsuario} with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`,
+    );
 
     const searchCriteria: any = { autor: usuario._id };
 
@@ -158,7 +171,7 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
     if (nombre) {
       searchCriteria.$or = [
         { nombre: { $regex: nombre, $options: 'i' } },
-        { descripcion: { $regex: nombre, $options: 'i' } }
+        { descripcion: { $regex: nombre, $options: 'i' } },
       ];
     }
 
@@ -190,7 +203,7 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
     const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
 
     const sortOrder = sort === 'asc' ? 1 : -1;
-    
+
     const anuncios = await Anuncio.find(searchCriteria)
       .sort({ fechaPublicacion: sortOrder })
       .skip((page - 1) * limit)
@@ -206,11 +219,13 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       precio: anuncio.precio,
       tipoAnuncio: anuncio.tipoAnuncio,
       tags: anuncio.tags,
-      autor: anuncio.autor ? {
-        _id: anuncio.autor._id.toString(),
-        nombre: anuncio.autor.nombre,
-        email: anuncio.autor.email
-      } : null,
+      autor: anuncio.autor
+        ? {
+            _id: anuncio.autor._id.toString(),
+            nombre: anuncio.autor.nombre,
+            email: anuncio.autor.email,
+          }
+        : null,
       fechaPublicacion: anuncio.fechaPublicacion,
     }));
 
@@ -223,20 +238,19 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
   } catch (error: unknown) {
     console.error('Error al obtener los anuncios del usuario:', error);
     if (error instanceof Error) {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
+      res.status(500).json({
+        message: 'Error en el servidor',
         error: error.message,
-        stack: error.stack 
+        stack: error.stack,
       });
     } else {
-      res.status(500).json({ 
-        message: 'Error en el servidor', 
-        error: 'An unknown error occurred' 
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: 'An unknown error occurred',
       });
     }
   }
 };
-
 
 // Controlador para manejar la carga y compresión de imágenes
 const uploadImages = async (req: Request, res: Response): Promise<void> => {
@@ -299,4 +313,34 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio  };
+const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
+  const { anuncioId } = req.params;
+  const token = req.headers.authorization;
+  try {
+    if (!token || typeof token !== 'string') {
+      throw new UnauthorizedError();
+    }
+    const userId = jwt.verify(token, JWT_SECRET);
+    const userIsOwner = await isOwner(anuncioId, userId);
+    if (userIsOwner) {
+      await Anuncio.deleteOne({ _id: anuncioId });
+    }
+    res.status(200).send('Anuncio eliminado correctamente');
+  } catch (error: unknown) {
+    console.error('Error al eliminar anuncio:', error);
+    if (error instanceof Error) {
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: error.message,
+        stack: error.stack,
+      });
+    } else {
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: 'Se produjo un error desconocido',
+      });
+    }
+  }
+};
+
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };
