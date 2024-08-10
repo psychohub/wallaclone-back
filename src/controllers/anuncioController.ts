@@ -34,6 +34,7 @@ interface LeanAnuncio {
     email: string;
   } | null;
   fechaPublicacion: Date;
+  slug: string;
 }
 
 const getAnuncios = async (req: Request, res: Response): Promise<void> => {
@@ -283,6 +284,35 @@ const uploadImages = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+
+const getAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const slug = req.params.slug;
+    
+    console.log(`Fetching anuncio with slug: ${slug}`);
+
+    const anuncio = await Anuncio.findOne({ slug: slug });
+
+    res.status(200).json({
+      result: anuncio
+    });
+  } catch (error: unknown) {
+    console.error('Error al obtener el anuncio:', error);
+    if (error instanceof Error) {
+      res.status(500).json({ 
+        message: 'Error en el servidor', 
+        error: error.message,
+        stack: error.stack 
+      });
+    } else {
+      res.status(500).json({ 
+        message: 'Error en el servidor', 
+        error: 'An unknown error occurred' 
+      });
+    }
+  }
+};
+
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
   const token = req.headers.authorization;
@@ -313,4 +343,4 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, deleteAnuncio };
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };
