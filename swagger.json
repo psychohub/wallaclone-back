@@ -232,7 +232,7 @@
         }
       }
     },
-    "/api/perfil/{nombreUsuario}/anuncios": {
+    "/api/anuncios/user/{nombreUsuario}": {
       "get": {
         "summary": "Obtener anuncios de un usuario específico",
         "tags": ["Anuncios"],
@@ -360,6 +360,75 @@
           }
         }
       }
+    },
+    "/api/anuncios/item/{slug}": {
+      "get": {
+        "summary": "Obtener el detalle de un anuncio específico",
+        "tags": ["Anuncios"],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Slug del anuncio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de un anuncio obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "$ref": "#/components/schemas/Anuncio"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/api/anuncios/delete/{anuncioId}": {
+      "delete": {
+        "summary": "Eliminar un anuncio específico",
+        "tags": ["Anuncios"],
+        "parameters": [
+          {
+            "name": "anuncioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id del anuncio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anuncio eliminado correctamente"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -409,6 +478,9 @@
           "fechaPublicacion": {
             "type": "string",
             "format": "date-time"
+          },
+          "slug": {
+            "type": "string"
           }
         }
       }
