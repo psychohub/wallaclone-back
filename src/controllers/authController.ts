@@ -4,12 +4,6 @@ import Usuario from '../models/Usuario';
 import { BadRequestError, ConflictError, UnauthorizedError } from '../utils/errors';
 import { sendEmail } from '../config/email';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET debe definirse en variables de entorno');
-}
-
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { nombre, email, contraseña } = req.body;

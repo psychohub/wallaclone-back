@@ -288,8 +288,6 @@ const uploadImages = async (req: Request, res: Response): Promise<void> => {
 const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
-    
-    console.log(`Fetching anuncio with slug: ${slug}`);
 
     const anuncio = await Anuncio.findOne({ slug: slug });
 
@@ -315,13 +313,9 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
 
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
-  const token = req.headers.authorization;
+  
   try {
-    if (!token || typeof token !== 'string') {
-      throw new UnauthorizedError();
-    }
-    const userId = jwt.verify(token, JWT_SECRET);
-    const userIsOwner = await isOwner(anuncioId, userId);
+    const userIsOwner = await isOwner(anuncioId, req.userId);
     if (userIsOwner) {
       await Anuncio.deleteOne({ _id: anuncioId });
     }
