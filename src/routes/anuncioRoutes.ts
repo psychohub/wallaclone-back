@@ -7,14 +7,15 @@ import {
   deleteAnuncio,
 } from '../controllers/anuncioController';
 import multer from 'multer';
+import jwtAuthMiddleware from '../middleware/jwtAuth';
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get('/anuncios', getAnuncios);
-router.get('/perfil/:nombreUsuario/anuncios', getAnunciosUsuario);
-router.post('/anuncios/upload', upload.array('imagenes'), uploadImages);
-router.post('/anuncios/item/:slug', getAnuncio);
-router.delete('/anuncios/delete/:anuncioId', deleteAnuncio);
+router.get('/', getAnuncios);
+router.get('/user/:nombreUsuario', getAnunciosUsuario);
+router.post('/item/:slug', getAnuncio);
+router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
+router.post('/upload', upload.array('imagenes'), uploadImages);
 
 export default router;

@@ -56,7 +56,7 @@ app.get('/images/:imageName', getImage);
 app.use('/api/auth', authRoutes);
 app.use('/api/recuperar-contrasena', recoveryPass);
 app.use('/api/restablecer-contrasena', resetPass);
-app.use('/api', anuncioRoutes);
+app.use('/api/anuncios', anuncioRoutes);
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
