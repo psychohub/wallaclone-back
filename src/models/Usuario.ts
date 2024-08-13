@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import bcrypt from 'bcrypt';
+import { comparePasswords, hashPassword } from '../utils/password';
 
 export interface IUsuario extends Document {
   nombre: string;
@@ -43,15 +43,13 @@ const UsuarioSchema: Schema = new Schema({
 // Método para hashear la contraseña antes de guardar
 UsuarioSchema.pre<IUsuario>('save', async function(next) {
   if (!this.isModified('contraseña')) return next();
-  
-  const salt = await bcrypt.genSalt(10);
-  this.contraseña = await bcrypt.hash(this.contraseña, salt);
+  this.contraseña = await hashPassword(this.contraseña);
   next();
 });
 
 // Método para comparar contraseñas
 UsuarioSchema.methods.compararContraseña = async function(contraseñaCandidata: string): Promise<boolean> {
-  return bcrypt.compare(contraseñaCandidata, this.contraseña);
+  return await comparePasswords(contraseñaCandidata, this.contraseña);
 };
 
 const Usuario = mongoose.model<IUsuario>('Usuario', UsuarioSchema);
