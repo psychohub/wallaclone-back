@@ -12,7 +12,7 @@ export const sendEmail = async ({ from, to, subject, text, html }: { from?: stri
 	});
 
 	const emailOptions = {
-    from: from ?? 'Pepe de Wallaclone',
+    from: from ?? String(process.env.EMAIL_DEFAULT_FROM),
     to: to,
     subject: subject,
     text: text,
