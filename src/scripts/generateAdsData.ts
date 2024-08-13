@@ -1,13 +1,12 @@
-import fs from 'fs';
 import path from 'path';
 import { Types } from 'mongoose';
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import Usuario from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import { connectDB } from '../config/database';
 import dotenv from 'dotenv';
 import { createSlug } from '../utils/slug';
+import { hashPassword } from '../utils/password';
 
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -62,8 +61,8 @@ const generateData = async () => {
 
     // Crear usuarios
     const usuariosCifrados = await Promise.all(usuariosData.map(async (usuario) => {
-      const salt = await bcrypt.genSalt(10);
-      const contraseñaCifrada = await bcrypt.hash(usuario.contraseña, salt);
+      const contraseñaCifrada = await hashPassword(usuario.contraseña);
+      
       return {
         ...usuario,
         contraseña: contraseñaCifrada
