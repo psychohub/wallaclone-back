@@ -4,13 +4,15 @@ import { UnauthorizedError } from "../utils/errors";
 
 const jwtAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
 	const JWT_SECRET = process.env.JWT_SECRET;
-  const tokenJWT = req.get('Authorization');
+  const authorizationHeader = req.get('Authorization');
 
-  if (!tokenJWT || !JWT_SECRET) {
+  if (!authorizationHeader || !JWT_SECRET) {
     next(new UnauthorizedError('No token provided'));
     return;
   }
-	
+
+  const tokenJWT = authorizationHeader.split(' ')[1];
+  
   jwt.verify(tokenJWT, JWT_SECRET, (err, payload: any) => {
     if (err) {
       next(new UnauthorizedError('Invalid token'));

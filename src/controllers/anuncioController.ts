@@ -3,17 +3,11 @@ import { Request, Response } from 'express';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
 import sharp from 'sharp';
-import { BadRequestError, AppError, UnauthorizedError } from '../utils/errors';
+import { BadRequestError, AppError } from '../utils/errors';
 import mongoose from 'mongoose';
 import redisClient from '../config/redis';
 import { isOwner } from '../utils/anuncio';
-import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error('JWT_SECRET debe definirse en variables de entorno');
-}
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
