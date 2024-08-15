@@ -402,6 +402,44 @@
         }
       }
     },
+    "/api/anuncios/item": {
+      "post": {
+        "summary": "Crear un nuevo anuncio",
+        "tags": ["Anuncios"],
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoAnuncio"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Anuncio creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Anuncio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
     "/api/anuncios/delete/{anuncioId}": {
       "delete": {
         "summary": "Eliminar un anuncio específico",
@@ -483,6 +521,41 @@
             "type": "string"
           }
         }
+      },
+      "NuevoAnuncio": {
+        "type": "object",
+        "required": ["nombre", "imagen", "descripcion", "tipoAnuncio", "precio"],
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "tipoAnuncio": {
+            "type": "string",
+            "enum": ["venta", "búsqueda"]
+          },
+          "precio": {
+            "type": "number"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
   }

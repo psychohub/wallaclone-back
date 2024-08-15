@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAnuncios, uploadImages, getAnunciosUsuario  } from '../controllers/anuncioController';
-import Anuncio from '../models/Anuncio';
-import Usuario from '../models/Usuario';
-import { BadRequestError, AppError } from '../utils/errors';
+import { getAnuncios, uploadImages, getAnunciosUsuario, createAnuncio, getAnuncio, deleteAnuncio } from '../controllers/anuncioController';
+import Anuncio, { IAnuncio } from '../models/Anuncio';
+import Usuario, { IUsuario } from '../models/Usuario';
 
 let mongoServer: MongoMemoryServer;
 
@@ -27,6 +26,55 @@ describe('Anuncio Controller', () => {
     await Anuncio.deleteMany({});
     await Usuario.deleteMany({});
   });
+
+  describe('createAnuncio', () => {
+    it('debería crear un nuevo anuncio', async () => {
+      const usuario = await Usuario.create({
+        nombre: 'UsuarioDePrueba',
+        email: 'usuario@prueba.com',
+        contraseña: 'password',
+        fechaRegistro: new Date(),
+        anunciosFavoritos: []
+      });
+
+      await usuario.save();
+
+      const userIdAsString = (usuario._id as mongoose.Types.ObjectId).toString();
+      const mockRequest = {
+        body: {
+          nombre: 'Anuncio de Prueba',
+          imagen: 'imagen.jpg',
+          descripcion: 'Descripción de prueba',
+          tipoAnuncio: 'venta',
+          precio: 100,
+          tags: ['tag1', 'tag2']
+        },
+        userId: userIdAsString
+      } as unknown as Request;
+
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await createAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(201);
+      expect(mockJson).toHaveBeenCalled();
+      const responseData = mockJson.mock.calls[0][0];
+      expect(responseData.anuncio).toHaveProperty('nombre', 'Anuncio de Prueba');
+      expect(responseData.anuncio).toHaveProperty('slug');
+      
+      expect(responseData.anuncio).toHaveProperty('autor');
+      expect((responseData.anuncio.autor as Types.ObjectId).toString()).toBe(userIdAsString);
+
+      const anuncioCreado = await Anuncio.findOne({ nombre: 'Anuncio de Prueba' });
+      expect(anuncioCreado).not.toBeNull();
+      expect((anuncioCreado!.autor as Types.ObjectId).toString()).toBe(userIdAsString);
+    });
+
 
   it('debería obtener una lista vacía de anuncios', async () => {
     const mockRequest = {
@@ -58,14 +106,41 @@ describe('Anuncio Controller', () => {
       contraseña: 'password'
     });
     await usuario.save();
-
+  
     const anuncios = [
-      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
-      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
-      { nombre: 'Anuncio 3', descripcion: 'Descripción 3', imagen: 'imagen3.jpg', precio: 150, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
+      { 
+        nombre: 'Anuncio 1', 
+        descripcion: 'Descripción 1', 
+        imagen: 'imagen1.jpg', 
+        precio: 100, 
+        tipoAnuncio: 'venta', 
+        autor: usuario._id, 
+        slug: 'anuncio-1',
+        fechaPublicacion: new Date() 
+      },
+      { 
+        nombre: 'Anuncio 2', 
+        descripcion: 'Descripción 2', 
+        imagen: 'imagen2.jpg', 
+        precio: 200, 
+        tipoAnuncio: 'búsqueda', 
+        autor: usuario._id, 
+        slug: 'anuncio-2',
+        fechaPublicacion: new Date() 
+      },
+      { 
+        nombre: 'Anuncio 3', 
+        descripcion: 'Descripción 3', 
+        imagen: 'imagen3.jpg', 
+        precio: 150, 
+        tipoAnuncio: 'venta', 
+        autor: usuario._id, 
+        slug: 'anuncio-3',
+        fechaPublicacion: new Date() 
+      }
     ];
     await Anuncio.insertMany(anuncios);
-
+  
     const mockRequest = {
       query: { page: '1', limit: '2' }
     } as unknown as Request;
@@ -76,9 +151,9 @@ describe('Anuncio Controller', () => {
       status: mockStatus,
       json: mockJson
     };
-
+  
     await getAnuncios(mockRequest, mockResponse as Response);
-
+  
     expect(mockStatus).toHaveBeenCalledWith(200);
     expect(mockJson).toHaveBeenCalled();
     const responseData = mockJson.mock.calls[0][0];
@@ -90,6 +165,7 @@ describe('Anuncio Controller', () => {
       expect(anuncio.autor).toHaveProperty('nombre', 'UsuarioDePrueba');
     });
   });
+  
 
   it('debería manejar errores', async () => {
     jest.spyOn(Anuncio, 'countDocuments').mockImplementationOnce(() => {
@@ -127,8 +203,8 @@ describe('Anuncio Controller', () => {
     await usuario.save();
 
     const anuncios = [
-      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
-      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
     ];
     await Anuncio.insertMany(anuncios);
 
@@ -161,8 +237,8 @@ describe('Anuncio Controller', () => {
     await usuario.save();
 
     const anuncios = [
-      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
-      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
     ];
     await Anuncio.insertMany(anuncios);
 
@@ -195,8 +271,8 @@ describe('Anuncio Controller', () => {
     await usuario.save();
 
     const anuncios = [
-      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', tags: ['tag1'], autor: usuario._id, fechaPublicacion: new Date() },
-      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', tags: ['tag2'], autor: usuario._id, fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', tags: ['tag1'], autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
+      { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', tags: ['tag2'], autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
     ];
     await Anuncio.insertMany(anuncios);
 
@@ -220,7 +296,7 @@ describe('Anuncio Controller', () => {
     expect(responseData.anuncios[0].tags).toContain('tag1');
   });
 
-  // ... (mantener las pruebas existentes para getAnuncios)
+
 
   describe('getAnunciosUsuario', () => {
     it('debería obtener los anuncios de un usuario específico', async () => {
@@ -232,8 +308,8 @@ describe('Anuncio Controller', () => {
       await usuario.save();
 
       const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
       ];
       await Anuncio.insertMany(anuncios);
 
@@ -288,8 +364,8 @@ describe('Anuncio Controller', () => {
       await usuario.save();
 
       const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date() },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date() },
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date('2023-01-01') },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date('2023-02-01') },
       ];
       await Anuncio.insertMany(anuncios);
 
@@ -323,8 +399,8 @@ describe('Anuncio Controller', () => {
       await usuario.save();
 
       const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, fechaPublicacion: new Date('2023-01-01') },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, fechaPublicacion: new Date('2023-02-01') },
+        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date('2023-01-01') },
+        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date('2023-02-01') },
       ];
       await Anuncio.insertMany(anuncios);
 
@@ -353,3 +429,4 @@ describe('Anuncio Controller', () => {
 });
 
 
+});
