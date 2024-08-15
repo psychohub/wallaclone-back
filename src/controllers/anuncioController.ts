@@ -44,10 +44,6 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
     const sort = (req.query.sort as string) || 'desc';
 
-    console.log(
-      `Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`,
-    );
-
     const searchCriteria: any = {};
 
     // Búsqueda por texto en nombre y descripción
@@ -68,11 +64,9 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
       searchCriteria.precio = {};
       if (precioMin !== undefined) {
         searchCriteria.precio.$gte = precioMin;
-        console.log('Adding min price to search criteria:', precioMin);
       }
       if (precioMax !== undefined) {
         searchCriteria.precio.$lte = precioMax;
-        console.log('Adding max price to search criteria:', precioMax);
       }
     }
 
@@ -80,8 +74,6 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     if (tipoAnuncio) {
       searchCriteria.tipoAnuncio = tipoAnuncio;
     }
-
-    console.log('Search criteria:', JSON.stringify(searchCriteria, null, 2));
 
     const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
 
@@ -110,6 +102,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
           }
         : null,
       fechaPublicacion: anuncio.fechaPublicacion,
+      slug: anuncio.slug,
     }));
 
     res.status(200).json({
@@ -221,6 +214,7 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
           }
         : null,
       fechaPublicacion: anuncio.fechaPublicacion,
+      slug: anuncio.slug,
     }));
 
     res.status(200).json({
@@ -282,7 +276,7 @@ const uploadImages = async (req: Request, res: Response): Promise<void> => {
 const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
-
+    
     const anuncio = await Anuncio.findOne({ slug: slug });
 
     res.status(200).json({
