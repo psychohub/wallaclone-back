@@ -7,6 +7,7 @@ import { BadRequestError, AppError } from '../utils/errors';
 import mongoose from 'mongoose';
 import redisClient from '../config/redis';
 import { isOwner } from '../utils/anuncio';
+import { createSlug } from '../utils/slug';
 
 
 // Definir el tipo de respuesta con la población del autor
@@ -325,4 +326,60 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };
+
+ 
+const createAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { nombre, imagen, descripcion, tipoAnuncio, precio, tags } = req.body;
+    
+    // Verificar autenticación
+    if (!req.userId) {
+      res.status(401).json({ message: 'Usuario no autenticado' });
+      return;
+    }
+
+    // Validar campos requeridos
+    if (!nombre || !imagen || !descripcion || !tipoAnuncio || !precio) {
+      throw new BadRequestError('Faltan campos requeridos');
+    }
+
+    // Crear slug
+    const slug = await createSlug(nombre);
+
+    // Crear nuevo anuncio
+    const nuevoAnuncio: IAnuncio = new Anuncio({
+      nombre,
+      imagen,
+      descripcion,
+      tipoAnuncio,
+      precio,
+      tags: tags || [], 
+      autor: req.userId, 
+      slug
+    });
+
+    // Guardar el anuncio en la base de datos
+    await nuevoAnuncio.save();
+
+    // Responder con el anuncio creado
+    res.status(201).json({
+      message: 'Anuncio creado exitosamente',
+      anuncio: nuevoAnuncio
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(error instanceof BadRequestError ? 400 : 500).json({
+        message: 'Error al crear el anuncio',
+        error: error.message
+      });
+    } else {
+      res.status(500).json({
+        message: 'Error desconocido al crear el anuncio'
+      });
+    }
+  }
+};
+
+
+
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio  };
