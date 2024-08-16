@@ -90,6 +90,8 @@ export const updatePass = async (
 
     user.contraseña = newPass;
     user.save();
+
+    res.status(200).send({ message: 'El cambio de contraseña se realizo exitosamente' });
   } catch (error) {
     next(error);
   }
