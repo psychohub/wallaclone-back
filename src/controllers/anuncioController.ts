@@ -277,7 +277,7 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
     
-    const anuncio = await Anuncio.findOne({ slug: slug });
+    const anuncio = await Anuncio.findOne({ slug: slug }).populate('autor', 'nombre email').lean<LeanAnuncio>();
 
     res.status(200).json({
       result: anuncio
