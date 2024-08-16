@@ -44,27 +44,24 @@ export const recoveryPass = async (
 };
 
 export const resetPass = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const token = req.body.token;
+  const token = req.query.token;
   const newPassword = req.body.newPassword;
 
   try {
     if (newPassword.length < 6) {
       throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
     }
-    
-		const decoded = jwt.verify(token, JWT_SECRET);
-		
-		const user = await Usuario.findOne({ email: (decoded as any).email });
-		if (!user) {
-			throw new NotFoundError('No existe el usuario');
-		}
 
-		user.contraseña = newPassword;
-		user.save();
-		
-    res
-			.status(200)
-			.send({ message: 'Contraseña restablecida exitosamente' });
+    const decoded = jwt.verify(token as any, JWT_SECRET);
+    const user = await Usuario.findOne({ email: (decoded as any).email });
+    if (!user) {
+      throw new NotFoundError('No existe el usuario');
+    }
+
+    user.contraseña = newPassword;
+    user.save();
+
+    res.status(200).send({ message: 'Contraseña restablecida exitosamente' });
   } catch (error) {
     next(error);
   }
