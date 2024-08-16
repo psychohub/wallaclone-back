@@ -66,3 +66,31 @@ export const resetPass = async (req: Request, res: Response, next: NextFunction)
     next(error);
   }
 };
+
+export const updatePass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const { oldPass, newPass } = req.body;
+  const userId = req.userId;
+
+  try {
+    if (newPass.length < 6) {
+      throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
+    }
+    const user = await Usuario.findOne({ _id: userId });
+
+    if (!user || user.contraseña !== oldPass) {
+      const error = user
+        ? new BadRequestError('La contraseña debe tener al menos 6 caracteres')
+        : new NotFoundError('Usuario no encontrado');
+      throw error;
+    }
+
+    user.contraseña = newPass;
+    user.save();
+  } catch (error) {
+    next(error);
+  }
+};
