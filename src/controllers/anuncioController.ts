@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
 import sharp from 'sharp';
-import { BadRequestError, AppError } from '../utils/errors';
+import { BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, AppError } from '../utils/errors';
 import mongoose from 'mongoose';
 import redisClient from '../config/redis';
 import { isOwner } from '../utils/anuncio';
@@ -331,4 +331,60 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };
+const editAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    // Verificar si el ID es una cadena válida
+    if (typeof id !== 'string' || id.length !== 24) {
+      throw new BadRequestError('Formato de ID inválido');
+    }
+
+    const { nombre, imagen, descripcion, tipoAnuncio, precio, tags } = req.body;
+
+    // Verificar autenticación
+    if (!req.userId) {
+      throw new UnauthorizedError('Usuario no autenticado');
+    }
+
+    // Verificar propiedad del anuncio
+    const userIsOwner = await isOwner(id, req.userId);
+    if (!userIsOwner) {
+      throw new ForbiddenError('No tienes permiso para editar este anuncio');
+    }
+
+    // Validar campos requeridos
+    if (!nombre || !imagen || !descripcion || !tipoAnuncio || precio === undefined) {
+      throw new BadRequestError('Faltan campos requeridos');
+    }
+
+    // Actualizar el anuncio
+    const anuncioActualizado = await Anuncio.findByIdAndUpdate(
+      id,
+      { nombre, imagen, descripcion, tipoAnuncio, precio, tags },
+      { new: true, runValidators: true }
+    );
+
+    if (!anuncioActualizado) {
+      throw new NotFoundError('Anuncio no encontrado');
+    }
+
+    res.status(200).json({
+      message: 'Anuncio actualizado exitosamente',
+      anuncio: anuncioActualizado
+    });
+  } catch (error) {
+    console.error('Error al actualizar el anuncio:', error);
+
+    if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+};
+
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio, editAnuncio  };

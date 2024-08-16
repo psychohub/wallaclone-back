@@ -429,6 +429,61 @@
           }
         }
       }
+    },
+    "/api/anuncios/item/{id}": {
+      "put": {
+        "summary": "Editar un anuncio existente",
+        "tags": ["Anuncios"],
+        "security": [{"bearerAuth": []}],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del anuncio a editar"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoAnuncio"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anuncio actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Anuncio"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "403": {
+            "description": "Prohibido - No es el propietario del anuncio"
+          },
+          "404": {
+            "description": "Anuncio no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
     }
   },
   "components": {
