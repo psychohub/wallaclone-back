@@ -1,6 +1,5 @@
 import express from 'express';
-import { recoveryPass, resetPass } from '../controllers/userController';
-import { deleteAccount } from '../controllers/userController';
+import { recoveryPass, resetPass, deleteAccount } from '../controllers/userController';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
 
 const router = express.Router();

@@ -28,7 +28,4 @@ const jwtAuthMiddleware = async (req: AuthRequest, res: Response, next: NextFunc
   });
 };
 
-
-
-
 export default jwtAuthMiddleware;
