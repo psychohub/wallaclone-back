@@ -361,6 +361,41 @@
         }
       }
     },
+    "/api/users/{id}": {
+      "delete": {
+        "summary": "Eliminar cuenta de usuario",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta de usuario eliminada con éxito"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/anuncios/item/{slug}": {
       "get": {
         "summary": "Obtener el detalle de un anuncio específico",
