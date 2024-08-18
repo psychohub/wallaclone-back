@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 
 // Cargar variables de entorno
@@ -10,12 +11,15 @@ import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import anuncioRoutes from './routes/anuncioRoutes';
 import swaggerUi from 'swagger-ui-express';
-import swaggerDocument from '../swagger.json';
 import cache from './middleware/cache';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import { AppError, NotFoundError } from './utils/errors';
 import { getImage } from './controllers/imageController';
+
+// Leer el archivo swagger.json
+const swaggerPath = path.resolve(__dirname, '../swagger.json');
+const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf-8'));
 
 const app = express();
 

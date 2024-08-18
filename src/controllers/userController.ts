@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import Usuario from '../models/Usuario';
+import Anuncio from '../models/Anuncio';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../config/email';
 import { BadRequestError, NotFoundError } from '../utils/errors';
@@ -94,6 +95,32 @@ export const updatePass = async (
     user.save();
 
     res.status(200).send({ message: 'El cambio de contraseña se realizó exitosamente' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteAccount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.params.id;
+
+    // Verificar si el usuario existe
+    const user = await Usuario.findById(userId);
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    // Eliminar anuncios asociados al usuario
+    await Anuncio.deleteMany({ autor: userId });
+
+    // Eliminar el usuario
+    await Usuario.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: 'Cuenta de usuario eliminada con éxito' });
   } catch (error) {
     next(error);
   }
