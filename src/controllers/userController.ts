@@ -44,7 +44,7 @@ export const recoveryPass = async (
 };
 
 export const resetPass = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const token = req.query.token;
+  const token = req.body.token;
   const newPassword = req.body.newPassword;
 
   try {
@@ -81,17 +81,19 @@ export const updatePass = async (
     }
     const user = await Usuario.findOne({ _id: userId });
 
-    if (!user || user.contraseña !== oldPass) {
-      const error = user
-        ? new BadRequestError('La contraseña debe tener al menos 6 caracteres')
-        : new NotFoundError('Usuario no encontrado');
-      throw error;
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const passwordsMatch = await user.compararContraseña(oldPass);
+    if (!passwordsMatch) {
+      throw new BadRequestError('La contraseña actual no es correcta')
     }
 
     user.contraseña = newPass;
     user.save();
 
-    res.status(200).send({ message: 'El cambio de contraseña se realizo exitosamente' });
+    res.status(200).send({ message: 'El cambio de contraseña se realizó exitosamente' });
   } catch (error) {
     next(error);
   }
