@@ -2,7 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError } from "../utils/errors";
 
-const jwtAuthMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+interface AuthRequest extends Request {
+  userId?: string;
+}
+
+const jwtAuthMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
 	const JWT_SECRET = process.env.JWT_SECRET;
   const authorizationHeader = req.get('Authorization');
 

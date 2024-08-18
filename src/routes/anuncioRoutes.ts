@@ -15,7 +15,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/', getAnuncios);
 router.get('/user/:nombreUsuario', getAnunciosUsuario);
-router.post('/item/:slug', getAnuncio);
+router.get('/item/:slug', getAnuncio);
 router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
 router.post('/item', jwtAuthMiddleware, createAnuncio);
 router.post('/upload', upload.array('imagenes'), uploadImages);
