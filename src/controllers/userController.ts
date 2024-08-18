@@ -52,20 +52,49 @@ export const resetPass = async (req: Request, res: Response, next: NextFunction)
     if (newPassword.length < 6) {
       throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
     }
-    
-		const decoded = jwt.verify(token, JWT_SECRET);
-		
-		const user = await Usuario.findOne({ email: (decoded as any).email });
-		if (!user) {
-			throw new NotFoundError('No existe el usuario');
-		}
 
-		user.contraseña = newPassword;
-		user.save();
-		
-    res
-			.status(200)
-			.send({ message: 'Contraseña restablecida exitosamente' });
+    const decoded = jwt.verify(token as any, JWT_SECRET);
+    const user = await Usuario.findOne({ email: (decoded as any).email });
+    if (!user) {
+      throw new NotFoundError('No existe el usuario');
+    }
+
+    user.contraseña = newPassword;
+    user.save();
+
+    res.status(200).send({ message: 'Contraseña restablecida exitosamente' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updatePass = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const { oldPass, newPass } = req.body;
+  const userId = req.userId;
+
+  try {
+    if (newPass.length < 6) {
+      throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
+    }
+    const user = await Usuario.findOne({ _id: userId });
+
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    const passwordsMatch = await user.compararContraseña(oldPass);
+    if (!passwordsMatch) {
+      throw new BadRequestError('La contraseña actual no es correcta')
+    }
+
+    user.contraseña = newPass;
+    user.save();
+
+    res.status(200).send({ message: 'El cambio de contraseña se realizó exitosamente' });
   } catch (error) {
     next(error);
   }

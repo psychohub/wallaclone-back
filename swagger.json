@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "description": "API para la aplicación Wallaclone"
   },
+
   "paths": {
     "/api/auth/register": {
       "post": {
@@ -140,10 +141,10 @@
         }
       }
     },
-    "/api/recuperar-contrasena": {
+    "/api/user/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
-        "tags": ["Recuperacion de contraseña"],
+        "tags": ["User"],
         "requestBody": {
           "required": true,
           "content": {
@@ -181,10 +182,10 @@
         }
       }
     },
-    "/api/restablecer-contrasena": {
+    "/api/user/restablecer-contrasena": {
       "post": {
         "summary": "Reestablece la contraseña de un usuario existente",
-        "tags": ["Recuperacion de contraseña"],
+        "tags": ["User"],
         "parameters": [
           {
             "name": "token",
@@ -216,6 +217,85 @@
         "responses": {
           "200": {
             "description": "Peticion de recuperar contraseña correcta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/actualizar-contrasena": {
+      "put": {
+        "summary": "Endpoint para cambiar la contraseña de un usuario ya logueado",
+        "tags": ["User"],
+        "security": {
+          "bearerAuth": ["Authorization"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["oldPass", "newPass"],
+                "properties": {
+                  "oldPass": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Antigua contraseña"
+                  },
+                  "newPass": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cambio de contraseña exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la validacion de la nueva contraseña",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
             "content": {
               "application/json": {
                 "schema": {
@@ -519,6 +599,9 @@
           }
         }
       }
+    },
+    "securitySchemes": {
+      "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
     }
   }
 }
