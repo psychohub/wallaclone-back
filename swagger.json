@@ -312,6 +312,126 @@
         }
       }
     },
+    "/api/anuncios": {
+      "get": {
+        "summary": "Obtener todos los anuncios",
+        "tags": ["Anuncios"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Número de página para la paginación"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 12
+            },
+            "description": "Número de anuncios por página"
+          },
+          {
+            "name": "nombre",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por nombre de artículo (búsqueda parcial, insensible a mayúsculas/minúsculas)"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por tag (una palabra clave)"
+          },
+          {
+            "name": "minPrecio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio mínimo"
+          },
+          {
+            "name": "maxPrecio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio máximo"
+          },
+          {
+            "name": "tipoAnuncio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["venta", "búsqueda"]
+            },
+            "description": "Filtrar por tipo de anuncio (venta o búsqueda)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "description": "Ordenar por fecha de publicación (asc: ascendente, desc: descendente)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de anuncios obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "anuncios": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Anuncio"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
     "/api/anuncios/user/{nombreUsuario}": {
       "get": {
         "summary": "Obtener anuncios de un usuario específico",
@@ -543,6 +663,71 @@
             "description": "Error del servidor"
           }
         }
+      }
+    },
+    "/api/anuncios/status": {
+      "get": {
+        "summary": "Listar los estados disponibles de los anuncios",
+        "tags": ["Anuncios"],
+        "responses": {
+          "200": {
+            "description": "Lista de los estados disponibles de los anuncios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/anuncios/status/{anuncioId}": {
+      "put": {
+        "summary": "Cambiar el estado de un anuncio específico",
+        "tags": ["Anuncios"],
+        "parameters": [
+          {
+            "name": "anuncioId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id del anuncio"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado del anuncio actualizado correctamente"
+          },
+          "400": {
+            "description": "Error en el envío de los parámetros"
+          },
+          "403": {
+            "description": "Acceso prohibido"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
