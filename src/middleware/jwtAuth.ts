@@ -8,15 +8,13 @@ interface AuthRequest extends Request {
 
 const jwtAuthMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
 	const JWT_SECRET = process.env.JWT_SECRET;
-  const authorizationHeader = req.get('Authorization');
+  const tokenJWT = req.get('Authorization');
 
-  if (!authorizationHeader || !JWT_SECRET) {
+  if (!tokenJWT || !JWT_SECRET) {
     next(new UnauthorizedError('No token provided'));
     return;
   }
 
-  const tokenJWT = authorizationHeader.split(' ')[1];
-  
   jwt.verify(tokenJWT, JWT_SECRET, (err, payload: any) => {
     if (err) {
       next(new UnauthorizedError('Invalid token'));
