@@ -383,5 +383,27 @@ const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const estados = Object.values(EstadosAnuncio);
 
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio, changeStatusAnuncio };
+    res.status(200).json({
+      result: estados
+    });
+
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({
+        message: error.message,
+        error: true,
+      });
+    } else {
+      res.status(500).json({
+        message: 'Ocurrió un error inesperado',
+        error: true,
+      });
+    }
+  }
+};
+
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio, changeStatusAnuncio, getStatusAnuncio };

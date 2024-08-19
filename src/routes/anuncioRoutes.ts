@@ -6,6 +6,7 @@ import {
 	getAnuncio,
   deleteAnuncio,
   changeStatusAnuncio,
+  getStatusAnuncio,
 } from '../controllers/anuncioController';
 import multer from 'multer';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
@@ -19,5 +20,6 @@ router.get('/item/:slug', getAnuncio);
 router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
 router.post('/upload', upload.array('imagenes'), uploadImages);
 router.put('/status/:anuncioId', jwtAuthMiddleware, changeStatusAnuncio);
+router.get('/status', jwtAuthMiddleware, getStatusAnuncio);
 
 export default router;
