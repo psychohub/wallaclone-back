@@ -5,6 +5,7 @@ import {
 	getAnuncio,
   deleteAnuncio,
   createAnuncio,
+  createAnuncio,
 } from '../controllers/anuncioController';
 import multer from 'multer';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
