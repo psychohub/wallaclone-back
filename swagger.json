@@ -519,15 +519,23 @@
     },
     "/api/anuncios/item": {
       "post": {
-        "summary": "Crear un nuevo anuncio",
         "tags": ["Anuncios"],
-        "security": [{"bearerAuth": []}],
+        "summary": "Crear un nuevo anuncio",
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
-          "required": true,
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/NuevoAnuncio"
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "descripcion": { "type": "string" },
+                  "tipoAnuncio": { "type": "string", "enum": ["venta", "búsqueda"] },
+                  "precio": { "type": "number" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "imagen": { "type": "string", "format": "binary" }
+                },
+                "required": ["nombre", "descripcion", "tipoAnuncio", "precio", "imagen"]
               }
             }
           }
@@ -543,15 +551,9 @@
               }
             }
           },
-          "400": {
-            "description": "Datos inválidos"
-          },
-          "401": {
-            "description": "No autorizado"
-          },
-          "500": {
-            "description": "Error del servidor"
-          }
+          "400": { "description": "Datos inválidos" },
+          "401": { "description": "No autorizado" },
+          "500": { "description": "Error del servidor" }
         }
       }
     },
@@ -672,9 +674,7 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
-    },
-    "securitySchemes": {
-      "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
     }
+   
   }
 }
