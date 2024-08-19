@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { IUsuario } from './Usuario';
+import { EstadosAnuncio } from '../utils/anuncio';
 
 export interface IAnuncio extends Document {
   nombre: string;
@@ -11,6 +12,7 @@ export interface IAnuncio extends Document {
   autor: IUsuario['_id']; 
   fechaPublicacion: Date;
   slug: string;
+  estado: string;
 }
 
 const AnuncioSchema: Schema = new Schema({
@@ -23,6 +25,7 @@ const AnuncioSchema: Schema = new Schema({
   autor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
   fechaPublicacion: { type: Date, default: Date.now },
   slug: { type: String, required: true },
+  estado: { type: String, required: true, default: EstadosAnuncio.DISPONIBLE },
 });
 
 export default mongoose.model<IAnuncio>('Anuncio', AnuncioSchema);
