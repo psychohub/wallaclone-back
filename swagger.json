@@ -637,6 +637,46 @@
         }
       }
     },
+    "/api/anuncios/item": {
+      "post": {
+        "tags": ["Anuncios"],
+        "summary": "Crear un nuevo anuncio",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "descripcion": { "type": "string" },
+                  "tipoAnuncio": { "type": "string", "enum": ["venta", "búsqueda"] },
+                  "precio": { "type": "number" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "imagen": { "type": "string", "format": "binary" }
+                },
+                "required": ["nombre", "descripcion", "tipoAnuncio", "precio", "imagen"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Anuncio creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Anuncio"
+                }
+              }
+            }
+          },
+          "400": { "description": "Datos inválidos" },
+          "401": { "description": "No autorizado" },
+          "500": { "description": "Error del servidor" }
+        }
+      }
+    },
     "/api/anuncios/delete/{anuncioId}": {
       "delete": {
         "summary": "Eliminar un anuncio específico",
@@ -783,10 +823,43 @@
             "type": "string"
           }
         }
+      },
+      "NuevoAnuncio": {
+        "type": "object",
+        "required": ["nombre", "imagen", "descripcion", "tipoAnuncio", "precio"],
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "tipoAnuncio": {
+            "type": "string",
+            "enum": ["venta", "búsqueda"]
+          },
+          "precio": {
+            "type": "number"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       }
     },
     "securitySchemes": {
-      "BearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" }
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
     }
+   
   }
 }
