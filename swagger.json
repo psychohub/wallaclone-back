@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "description": "API para la aplicación Wallaclone"
   },
+
   "paths": {
     "/api/auth/register": {
       "post": {
@@ -140,10 +141,10 @@
         }
       }
     },
-    "/api/recuperar-contrasena": {
+    "/api/user/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
-        "tags": ["Recuperacion de contraseña"],
+        "tags": ["User"],
         "requestBody": {
           "required": true,
           "content": {
@@ -181,10 +182,10 @@
         }
       }
     },
-    "/api/restablecer-contrasena": {
+    "/api/user/restablecer-contrasena": {
       "post": {
         "summary": "Reestablece la contraseña de un usuario existente",
-        "tags": ["Recuperacion de contraseña"],
+        "tags": ["User"],
         "parameters": [
           {
             "name": "token",
@@ -228,6 +229,205 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/user/actualizar-contrasena": {
+      "put": {
+        "summary": "Endpoint para cambiar la contraseña de un usuario ya logueado",
+        "tags": ["User"],
+        "security": {
+          "bearerAuth": ["Authorization"]
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["oldPass", "newPass"],
+                "properties": {
+                  "oldPass": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Antigua contraseña"
+                  },
+                  "newPass": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cambio de contraseña exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en la validacion de la nueva contraseña",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/anuncios": {
+      "get": {
+        "summary": "Obtener todos los anuncios",
+        "tags": ["Anuncios"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Número de página para la paginación"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 12
+            },
+            "description": "Número de anuncios por página"
+          },
+          {
+            "name": "nombre",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por nombre de artículo (búsqueda parcial, insensible a mayúsculas/minúsculas)"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filtrar por tag (una palabra clave)"
+          },
+          {
+            "name": "minPrecio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio mínimo"
+          },
+          {
+            "name": "maxPrecio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "number"
+            },
+            "description": "Precio máximo"
+          },
+          {
+            "name": "tipoAnuncio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["venta", "búsqueda"]
+            },
+            "description": "Filtrar por tipo de anuncio (venta o búsqueda)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["asc", "desc"],
+              "default": "desc"
+            },
+            "description": "Ordenar por fecha de publicación (asc: ascendente, desc: descendente)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de anuncios obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "anuncios": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Anuncio"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "totalPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
           }
         }
       }
@@ -361,6 +561,41 @@
         }
       }
     },
+    "/api/users/{id}": {
+      "delete": {
+        "summary": "Eliminar cuenta de usuario",
+        "tags": ["Users"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cuenta de usuario eliminada con éxito"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/anuncios/item/{slug}": {
       "get": {
         "summary": "Obtener el detalle de un anuncio específico",
@@ -402,6 +637,46 @@
         }
       }
     },
+    "/api/anuncios/item": {
+      "post": {
+        "tags": ["Anuncios"],
+        "summary": "Crear un nuevo anuncio",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": { "type": "string" },
+                  "descripcion": { "type": "string" },
+                  "tipoAnuncio": { "type": "string", "enum": ["venta", "búsqueda"] },
+                  "precio": { "type": "number" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "imagen": { "type": "string", "format": "binary" }
+                },
+                "required": ["nombre", "descripcion", "tipoAnuncio", "precio", "imagen"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Anuncio creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Anuncio"
+                }
+              }
+            }
+          },
+          "400": { "description": "Datos inválidos" },
+          "401": { "description": "No autorizado" },
+          "500": { "description": "Error del servidor" }
+        }
+      }
+    },
     "/api/anuncios/delete/{anuncioId}": {
       "delete": {
         "summary": "Eliminar un anuncio específico",
@@ -430,59 +705,69 @@
         }
       }
     },
-    "/api/anuncios/item/{id}": {
-      "put": {
-        "summary": "Editar un anuncio existente",
+    "/api/anuncios/status": {
+      "get": {
+        "summary": "Listar los estados disponibles de los anuncios",
         "tags": ["Anuncios"],
-        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "Lista de los estados disponibles de los anuncios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/anuncios/status/{anuncioId}": {
+      "put": {
+        "summary": "Cambiar el estado de un anuncio específico",
+        "tags": ["Anuncios"],
         "parameters": [
           {
-            "name": "id",
+            "name": "anuncioId",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "ID del anuncio a editar"
+            "description": "Id del anuncio"
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NuevoAnuncio"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "Anuncio actualizado exitosamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Anuncio"
-                }
-              }
-            }
+            "description": "Estado del anuncio actualizado correctamente"
           },
           "400": {
-            "description": "Datos inválidos"
-          },
-          "401": {
-            "description": "No autorizado"
+            "description": "Error en el envío de los parámetros"
           },
           "403": {
-            "description": "Prohibido - No es el propietario del anuncio"
-          },
-          "404": {
-            "description": "Anuncio no encontrado"
+            "description": "Acceso prohibido"
           },
           "500": {
             "description": "Error del servidor"
           }
-        }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   },
@@ -538,7 +823,43 @@
             "type": "string"
           }
         }
+      },
+      "NuevoAnuncio": {
+        "type": "object",
+        "required": ["nombre", "imagen", "descripcion", "tipoAnuncio", "precio"],
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "imagen": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "tipoAnuncio": {
+            "type": "string",
+            "enum": ["venta", "búsqueda"]
+          },
+          "precio": {
+            "type": "number"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       }
     }
+   
   }
 }

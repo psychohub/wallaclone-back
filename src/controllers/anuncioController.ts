@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
@@ -26,10 +27,12 @@ interface LeanAnuncio {
     _id: mongoose.Types.ObjectId;
     nombre: string;
     email: string;
-  } | null;
+  };
   fechaPublicacion: Date;
   slug: string;
+  estado: string;
 }
+
 
 const getAnuncios = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -43,10 +46,6 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     const precioMax = maxPrecio ? parseFloat(maxPrecio as string) : undefined;
     const tipoAnuncio = req.query.tipoAnuncio as 'venta' | 'búsqueda' | undefined;
     const sort = (req.query.sort as string) || 'desc';
-
-    console.log(
-      `Fetching anuncios with page: ${page}, limit: ${limit}, nombre: ${nombre}, tag: ${tag}, precioMin: ${precioMin}, precioMax: ${precioMax}, tipoAnuncio: ${tipoAnuncio}, sort: ${sort}`,
-    );
 
     const searchCriteria: any = {};
 
@@ -68,11 +67,9 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
       searchCriteria.precio = {};
       if (precioMin !== undefined) {
         searchCriteria.precio.$gte = precioMin;
-        console.log('Adding min price to search criteria:', precioMin);
       }
       if (precioMax !== undefined) {
         searchCriteria.precio.$lte = precioMax;
-        console.log('Adding max price to search criteria:', precioMax);
       }
     }
 
@@ -80,8 +77,6 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     if (tipoAnuncio) {
       searchCriteria.tipoAnuncio = tipoAnuncio;
     }
-
-    console.log('Search criteria:', JSON.stringify(searchCriteria, null, 2));
 
     const totalAnuncios = await Anuncio.countDocuments(searchCriteria);
 
@@ -110,6 +105,8 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
           }
         : null,
       fechaPublicacion: anuncio.fechaPublicacion,
+      slug: anuncio.slug,
+      estado: anuncio.estado,
     }));
 
     res.status(200).json({
@@ -134,6 +131,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
 
 const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -221,6 +219,8 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
           }
         : null,
       fechaPublicacion: anuncio.fechaPublicacion,
+      slug: anuncio.slug,
+      estado: anuncio.estado,
     }));
 
     res.status(200).json({
@@ -246,44 +246,12 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// Controlador para manejar la carga y compresión de imágenes
-const uploadImages = async (req: Request, res: Response): Promise<void> => {
-  try {
-    if (!req.files || !Array.isArray(req.files)) {
-      throw new BadRequestError('No se han subido imágenes');
-    }
-
-    const imagenes: string[] = [];
-    for (const file of req.files) {
-      const compressedImagePath = `uploads/${file.filename}`;
-      await sharp(file.buffer)
-        .resize(800, 600)
-        .toFormat('jpeg')
-        .jpeg({ quality: 80 })
-        .toFile(compressedImagePath);
-      imagenes.push(compressedImagePath);
-
-      // Almacenar en caché usando Redis
-      redisClient.set(compressedImagePath, JSON.stringify(file.buffer));
-    }
-
-    res.status(201).json({ imagenes });
-  } catch (error) {
-    if (error instanceof AppError) {
-      res.status(error.status).json({ message: error.message });
-    } else {
-      console.error('Error al subir las imágenes:', error);
-      res.status(500).json({ message: 'Error en el servidor' });
-    }
-  }
-};
-
 
 const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
-
-    const anuncio = await Anuncio.findOne({ slug: slug });
+    
+    const anuncio = await Anuncio.findOne({ slug: slug }).populate('autor', 'nombre email').lean<LeanAnuncio>();
 
     res.status(200).json({
       result: anuncio
@@ -305,11 +273,17 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
-  
+  const userId = req.userId;
+
   try {
-    const userIsOwner = await isOwner(anuncioId, req.userId);
+    if (!userId) {
+      throw new ForbiddenError();
+    }
+
+    const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
       await Anuncio.deleteOne({ _id: anuncioId });
     }
@@ -331,60 +305,4 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const editAnuncio = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-
-    // Verificar si el ID es una cadena válida
-    if (typeof id !== 'string' || id.length !== 24) {
-      throw new BadRequestError('Formato de ID inválido');
-    }
-
-    const { nombre, imagen, descripcion, tipoAnuncio, precio, tags } = req.body;
-
-    // Verificar autenticación
-    if (!req.userId) {
-      throw new UnauthorizedError('Usuario no autenticado');
-    }
-
-    // Verificar propiedad del anuncio
-    const userIsOwner = await isOwner(id, req.userId);
-    if (!userIsOwner) {
-      throw new ForbiddenError('No tienes permiso para editar este anuncio');
-    }
-
-    // Validar campos requeridos
-    if (!nombre || !imagen || !descripcion || !tipoAnuncio || precio === undefined) {
-      throw new BadRequestError('Faltan campos requeridos');
-    }
-
-    // Actualizar el anuncio
-    const anuncioActualizado = await Anuncio.findByIdAndUpdate(
-      id,
-      { nombre, imagen, descripcion, tipoAnuncio, precio, tags },
-      { new: true, runValidators: true }
-    );
-
-    if (!anuncioActualizado) {
-      throw new NotFoundError('Anuncio no encontrado');
-    }
-
-    res.status(200).json({
-      message: 'Anuncio actualizado exitosamente',
-      anuncio: anuncioActualizado
-    });
-  } catch (error) {
-    console.error('Error al actualizar el anuncio:', error);
-
-    if (error instanceof AppError) {
-      res.status(error.status).json({ message: error.message });
-    } else {
-      res.status(500).json({
-        message: 'Error en el servidor',
-        error: error instanceof Error ? error.message : 'Error desconocido'
-      });
-    }
-  }
-};
-
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio, editAnuncio  };
+export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };

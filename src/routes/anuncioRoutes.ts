@@ -1,23 +1,25 @@
+
 import express from 'express';
 import {
   getAnuncios,
-  uploadImages,
   getAnunciosUsuario,
 	getAnuncio,
   deleteAnuncio,
-  editAnuncio,
+  createAnuncio,
+  changeStatusAnuncio,
+  getStatusAnuncio,
 } from '../controllers/anuncioController';
-import multer from 'multer';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
+import upload from '../middleware/multerConfig';
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() });
 
 router.get('/', getAnuncios);
 router.get('/user/:nombreUsuario', getAnunciosUsuario);
-router.post('/item/:slug', getAnuncio);
+router.get('/item/:slug', getAnuncio);
+router.post('/item', jwtAuthMiddleware, upload.single('imagen'), createAnuncio);
 router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
-router.put('/item/:id', jwtAuthMiddleware, editAnuncio);
-router.post('/upload', upload.array('imagenes'), uploadImages);
+router.put('/status/:anuncioId', jwtAuthMiddleware, changeStatusAnuncio);
+router.get('/status', jwtAuthMiddleware, getStatusAnuncio);
 
 export default router;
