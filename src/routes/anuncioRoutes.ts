@@ -6,6 +6,8 @@ import {
 	getAnuncio,
   deleteAnuncio,
   createAnuncio,
+  changeStatusAnuncio,
+  getStatusAnuncio,
 } from '../controllers/anuncioController';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
 import upload from '../middleware/multerConfig';
@@ -15,7 +17,9 @@ const router = express.Router();
 router.get('/', getAnuncios);
 router.get('/user/:nombreUsuario', getAnunciosUsuario);
 router.get('/item/:slug', getAnuncio);
-router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
 router.post('/item', jwtAuthMiddleware, upload.single('imagen'), createAnuncio);
+router.delete('/delete/:anuncioId', jwtAuthMiddleware, deleteAnuncio);
+router.put('/status/:anuncioId', jwtAuthMiddleware, changeStatusAnuncio);
+router.get('/status', jwtAuthMiddleware, getStatusAnuncio);
 
 export default router;
