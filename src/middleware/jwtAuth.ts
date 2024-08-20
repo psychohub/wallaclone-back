@@ -10,7 +10,6 @@ const jwtAuthMiddleware = (req: AuthRequest, res: Response, next: NextFunction) 
 
   const authHeader = req.headers.authorization;
 
-
   if (!authHeader) {
     return next(new UnauthorizedError('No token provided'));
   }

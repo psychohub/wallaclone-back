@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
-import { BadRequestError, AppError } from '../utils/errors';
-import mongoose from 'mongoose';
+import { BadRequestError } from '../utils/errors';
 import { isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
 
@@ -29,7 +29,6 @@ interface LeanAnuncio {
   fechaPublicacion: Date;
   slug: string;
 }
-
 
 
 const getAnuncios = async (req: Request, res: Response): Promise<void> => {
@@ -128,6 +127,7 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
 
 const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -242,8 +242,6 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
 };
 
 
-
-
 const getAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const slug = req.params.slug;
@@ -269,6 +267,7 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
+
 
 const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   const { anuncioId } = req.params;
@@ -297,13 +296,12 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 };
 
 
- 
 const createAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('userId in controller:', req.userId);  
 
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
-    const imagen = req.file ? `/images/${req.file.filename}` : null;
+    const imagen = req.file ? `${req.file.filename}` : null;
     
     if (!req.userId) {
       res.status(401).json({ message: 'Usuario no autenticado' });
@@ -346,8 +344,5 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
     }
   }
 };
-
-
-
 
 export { LeanAnuncio, getAnuncios,  getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio  };

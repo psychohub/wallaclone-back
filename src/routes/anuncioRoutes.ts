@@ -7,13 +7,10 @@ import {
   deleteAnuncio,
   createAnuncio,
 } from '../controllers/anuncioController';
-import multer from 'multer';
 import jwtAuthMiddleware from '../middleware/jwtAuth';
-import { uploadImages } from '../middleware/upload';
 import upload from '../middleware/multerConfig';
 
 const router = express.Router();
-
 
 router.get('/', getAnuncios);
 router.get('/user/:nombreUsuario', getAnunciosUsuario);
