@@ -3,12 +3,9 @@ import mongoose from 'mongoose';
 
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
-import sharp from 'sharp';
-import { BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError, AppError } from '../utils/errors';
-import mongoose from 'mongoose';
-import redisClient from '../config/redis';
-import { isOwner } from '../utils/anuncio';
-
+import { AppError, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError} from '../utils/errors';
+import { EstadosAnuncio, isOwner } from '../utils/anuncio';
+import { createSlug } from '../utils/slug';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -305,4 +302,200 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, uploadImages, getAnunciosUsuario, getAnuncio, deleteAnuncio };
+
+const createAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    console.log('userId in controller:', req.userId);  
+
+    const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
+    const imagen = req.file ? `${req.file.filename}` : null;
+    
+    if (!req.userId) {
+      res.status(401).json({ message: 'Usuario no autenticado' });
+      return;
+    }
+
+    if (!nombre || !imagen || !descripcion || !tipoAnuncio || !precio) {
+      throw new BadRequestError('Faltan campos requeridos');
+    }
+
+    const slug = await createSlug(nombre);
+
+    const nuevoAnuncio: IAnuncio = new Anuncio({
+      nombre,
+      imagen,
+      descripcion,
+      tipoAnuncio,
+      precio,
+      tags: tags || [], 
+      autor: req.userId, 
+      slug
+    });
+
+    await nuevoAnuncio.save();
+
+    res.status(201).json({
+      message: 'Anuncio creado exitosamente',
+      anuncio: nuevoAnuncio
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(error instanceof BadRequestError ? 400 : 500).json({
+        message: 'Error al crear el anuncio',
+        error: error.message
+      });
+    } else {
+      res.status(500).json({
+        message: 'Error desconocido al crear el anuncio'
+      });
+    }
+  }
+};
+
+const editAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Formato de ID inválido');
+    }
+
+    const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
+    const imagen = req.file ? `/images/${req.file.filename}` : undefined;
+
+    if (!req.userId) {
+      throw new UnauthorizedError('Usuario no autenticado');
+    }
+
+    const userIsOwner = await isOwner(id, req.userId);
+    if (!userIsOwner) {
+      throw new ForbiddenError('No tienes permiso para editar este anuncio');
+    }
+
+    const anuncioExistente = await Anuncio.findById(id);
+    if (!anuncioExistente) {
+      throw new NotFoundError('Anuncio no encontrado');
+    }
+
+    const datosActualizados: Partial<IAnuncio> = {
+      nombre: nombre || anuncioExistente.nombre,
+      descripcion: descripcion || anuncioExistente.descripcion,
+      tipoAnuncio: tipoAnuncio || anuncioExistente.tipoAnuncio,
+      precio: precio !== undefined ? precio : anuncioExistente.precio,
+      tags: tags || anuncioExistente.tags,
+    };
+
+    if (imagen) {
+      datosActualizados.imagen = imagen;
+    }
+
+    // Actualizar el slug solo si el nombre ha cambiado
+    if (nombre && nombre !== anuncioExistente.nombre) {
+      datosActualizados.slug = await createSlug(nombre);
+    }
+
+    const anuncioActualizado = await Anuncio.findByIdAndUpdate(
+      id,
+      datosActualizados,
+      { new: true, runValidators: true }
+    );
+
+    if (!anuncioActualizado) {
+      throw new NotFoundError('Anuncio no encontrado después de la actualización');
+    }
+
+    res.status(200).json({
+      message: 'Anuncio actualizado exitosamente',
+      anuncio: anuncioActualizado
+    });
+  } catch (error) {
+    console.error('Error al actualizar el anuncio:', error);
+
+    if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: error instanceof Error ? error.message : 'Error desconocido'
+      });
+    }
+  }
+};
+
+
+const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
+  const { anuncioId } = req.params;
+  const { estado } = req.body;
+  const userId = req.userId;
+  
+  try {
+    if (!userId) {
+      throw new ForbiddenError();
+    }
+
+    const userIsOwner = await isOwner(anuncioId, userId);
+    if (!userIsOwner) {
+      throw new ForbiddenError('Solo el dueño puede actualizar el estado de un anuncio');
+    }
+
+    if (!Object.values(EstadosAnuncio).includes(estado)) {
+      throw new BadRequestError('El estado enviado no existe entre los posibles estados del anuncio');
+    }
+
+    const anuncio = await Anuncio.findOne({ _id: anuncioId });
+    if (!anuncio) {
+      throw new BadRequestError('No existe un anuncio con ese id');
+    }
+
+    if (estado === anuncio.estado) {
+      throw new BadRequestError('El estado enviado es igual al estado actual');
+    }
+
+    if (anuncio.estado === EstadosAnuncio.VENDIDO) {
+      throw new BadRequestError('El anuncio se encuentra en estado vendido, por lo que no puede cambiar de estado');
+    }
+
+    anuncio.estado = estado;
+    anuncio.save();
+    
+    res.status(200).send({ result: 'Estado del anuncio actualizado correctamente' });
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({
+        message: error.message,
+        error: true,
+      });
+    } else {
+      res.status(500).json({
+        message: 'Ocurrió un error inesperado',
+        error: true,
+      });
+    }
+  }
+};
+
+
+const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const estados = Object.values(EstadosAnuncio);
+
+    res.status(200).json({
+      result: estados
+    });
+
+  } catch (error: any) {
+    if (error.status) {
+      res.status(error.status).json({
+        message: error.message,
+        error: true,
+      });
+    } else {
+      res.status(500).json({
+        message: 'Ocurrió un error inesperado',
+        error: true,
+      });
+    }
+  }
+};
+
+export { LeanAnuncio, getAnuncios, getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio, editAnuncio, changeStatusAnuncio, getStatusAnuncio };

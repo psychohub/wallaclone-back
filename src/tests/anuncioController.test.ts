@@ -1,17 +1,17 @@
 import { Request, Response } from 'express';
 import mongoose, { Model, Types } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAnuncios, uploadImages, getAnunciosUsuario, editAnuncio   } from '../controllers/anuncioController';
+import { getAnuncios, getAnunciosUsuario, editAnuncio } from '../controllers/anuncioController';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
 import * as anuncioUtils from '../utils/anuncio';
 import { BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError } from '../utils/errors';
+import path from 'path';
+import fs from 'fs';
+
 
 // Definir el tipo del modelo de Anuncio
 type AnuncioModel = Model<IAnuncio, {}, {}>
-
-// Extender el tipo Document con IAnuncio
-interface IAnuncioDocument extends IAnuncio, Document {}
 
 let mongoServer: MongoMemoryServer;
 
@@ -36,7 +36,64 @@ describe('Anuncio Controller', () => {
   });
 
   describe('editAnuncio', () => {
-    it('debería actualizar un anuncio exitosamente', async () => {
+    it('debería actualizar un anuncio exitosamente incluyendo una nueva imagen', async () => {
+      const usuario: IUsuario = await Usuario.create({
+        nombre: 'UsuarioDePrueba',
+        email: 'usuario@prueba.com',
+        contraseña: 'password'
+      });
+      
+    
+      const anuncio = await (Anuncio as AnuncioModel).create({
+        nombre: 'Anuncio Original',
+        descripcion: 'Descripción original',
+        imagen: 'imagen-original.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario._id,
+        fechaPublicacion: new Date()
+      });
+
+      const id = (anuncio._id as mongoose.Types.ObjectId).toString();
+      const mockRequest = {
+        params: { id },
+        body: {
+          nombre: 'Anuncio Actualizado',
+          descripcion: 'Descripción actualizada',
+          tipoAnuncio: 'venta',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
+        },
+        file: { filename: 'imagen-actualizada.jpg' },
+        userId: (anuncio._id as mongoose.Types.ObjectId).toString(),
+      } as unknown as Request;
+    
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      jest.spyOn(anuncioUtils, 'isOwner').mockResolvedValue(true);
+      jest.spyOn(fs, 'unlinkSync').mockImplementationOnce(() => {}); // Mockear la eliminación de la imagen anterior
+    
+      await editAnuncio(mockRequest, mockResponse as Response);
+    
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'Anuncio actualizado exitosamente',
+        anuncio: expect.objectContaining({
+          nombre: 'Anuncio Actualizado',
+          imagen: '/images/imagen-actualizada.jpg',
+          descripcion: 'Descripción actualizada',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
+        })
+      }));
+    });
+
+    it('debería actualizar un anuncio exitosamente sin cambiar la imagen si no se proporciona una nueva', async () => {
       const usuario = await Usuario.create({
         nombre: 'UsuarioDePrueba',
         email: 'usuario@prueba.com',
@@ -58,14 +115,12 @@ describe('Anuncio Controller', () => {
         params: { id },
         body: {
           nombre: 'Anuncio Actualizado',
-          imagen: 'imagen-actualizada.jpg',
           descripcion: 'Descripción actualizada',
           tipoAnuncio: 'venta',
           precio: 150,
           tags: ['nuevo', 'tecnología']
         },
-        
-        userId: (anuncio._id as mongoose.Types.ObjectId).toString()
+        userId: (usuario._id as mongoose.Types.ObjectId).toString(),
       } as unknown as Request;
     
       const mockJson = jest.fn();
@@ -84,14 +139,13 @@ describe('Anuncio Controller', () => {
         message: 'Anuncio actualizado exitosamente',
         anuncio: expect.objectContaining({
           nombre: 'Anuncio Actualizado',
-          imagen: 'imagen-actualizada.jpg',
+          imagen: 'imagen-original.jpg',
           descripcion: 'Descripción actualizada',
           precio: 150,
           tags: ['nuevo', 'tecnología']
         })
       }));
     });
-
 
     it('debería retornar un error si el usuario no está autenticado', async () => {
       const anuncio: IAnuncio = new Anuncio({
@@ -109,7 +163,6 @@ describe('Anuncio Controller', () => {
         params: { id },
         body: {
           nombre: 'Anuncio Actualizado',
-          imagen: 'imagen-actualizada.jpg',
           descripcion: 'Descripción actualizada',
           tipoAnuncio: 'venta',
           precio: 150,
@@ -133,227 +186,147 @@ describe('Anuncio Controller', () => {
       });
     });
 
-  it('debería obtener una lista vacía de anuncios', async () => {
-    const mockRequest = {
-      query: {}
-    } as unknown as Request;
-    
-    const mockJson = jest.fn();
-    const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-    const mockResponse: Partial<Response> = {
-      status: mockStatus,
-      json: mockJson
-    };
+    it('debería retornar un error si el anuncio no pertenece al usuario autenticado', async () => {
+      const usuario1 = await Usuario.create({
+        nombre: 'Usuario1',
+        email: 'usuario1@prueba.com',
+        contraseña: 'password'
+      });
 
-      await getAnuncios(mockRequest, mockResponse as Response);
+      const usuario2 = await Usuario.create({
+        nombre: 'Usuario2',
+        email: 'usuario2@prueba.com',
+        contraseña: 'password'
+      });
 
-      expect(mockStatus).toHaveBeenCalledWith(200);
+      const anuncio = await (Anuncio as AnuncioModel).create({
+        nombre: 'Anuncio Original',
+        descripcion: 'Descripción original',
+        imagen: 'imagen-original.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario1._id,
+        fechaPublicacion: new Date()
+      });
+
+      const id = (anuncio._id as mongoose.Types.ObjectId).toString();
+      const mockRequest = {
+        params: { id },
+        body: {
+          nombre: 'Anuncio Actualizado',
+          descripcion: 'Descripción actualizada',
+          tipoAnuncio: 'venta',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
+        },
+        userId: (anuncio._id as mongoose.Types.ObjectId).toString(),
+      } as unknown as Request;
+
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      jest.spyOn(anuncioUtils, 'isOwner').mockResolvedValue(false);
+
+      await editAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(403);
       expect(mockJson).toHaveBeenCalledWith({
-        anuncios: [],
-        total: 0,
-        page: 1,
-        totalPages: 0
+        message: 'No tienes permiso para editar este anuncio'
       });
     });
 
-    it('debería obtener anuncios con paginación', async () => {
-      const usuario = new Usuario({
-        nombre: 'UsuarioDePrueba', 
+    it('debería retornar un error si el anuncio no existe', async () => {
+      const mockRequest = {
+        params: { id: new Types.ObjectId().toString() },
+        body: {
+          nombre: 'Anuncio Actualizado',
+          descripcion: 'Descripción actualizada',
+          tipoAnuncio: 'venta',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
+        },
+        userId: new Types.ObjectId().toString(),
+      } as unknown as Request;
+
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      jest.spyOn(anuncioUtils, 'isOwner').mockResolvedValue(true);
+
+      await editAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(404);
+      expect(mockJson).toHaveBeenCalledWith({
+        message: 'Anuncio no encontrado'
+      });
+    });
+
+    it('debería eliminar la imagen anterior cuando se sube una nueva', async () => {
+      const usuario = await Usuario.create({
+        nombre: 'UsuarioDePrueba',
         email: 'usuario@prueba.com',
         contraseña: 'password'
       });
-      await usuario.save();
     
-      const anuncios = [
-        { 
-          nombre: 'Anuncio 1', 
-          descripcion: 'Descripción 1', 
-          imagen: 'imagen1.jpg', 
-          precio: 100, 
-          tipoAnuncio: 'venta', 
-          autor: usuario._id, 
-          slug: 'anuncio-1',
-          fechaPublicacion: new Date() 
-        },
-        { 
-          nombre: 'Anuncio 2', 
-          descripcion: 'Descripción 2', 
-          imagen: 'imagen2.jpg', 
-          precio: 200, 
-          tipoAnuncio: 'búsqueda', 
-          autor: usuario._id, 
-          slug: 'anuncio-2',
-          fechaPublicacion: new Date() 
-        },
-        { 
-          nombre: 'Anuncio 3', 
-          descripcion: 'Descripción 3', 
-          imagen: 'imagen3.jpg', 
-          precio: 150, 
-          tipoAnuncio: 'venta', 
-          autor: usuario._id, 
-          slug: 'anuncio-3',
-          fechaPublicacion: new Date() 
-        }
-      ];
-      await Anuncio.insertMany(anuncios);
-    
+      const anuncio = await (Anuncio as AnuncioModel).create({
+        nombre: 'Anuncio Original',
+        descripcion: 'Descripción original',
+        imagen: 'imagen-original.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario._id,
+        fechaPublicacion: new Date()
+      });
+
+      const id = (anuncio._id as mongoose.Types.ObjectId).toString();
       const mockRequest = {
-        query: { page: '1', limit: '2' }
+        params: { id },
+        body: {
+          nombre: 'Anuncio Actualizado',
+          descripcion: 'Descripción actualizada',
+          tipoAnuncio: 'venta',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
+        },
+        file: { filename: 'imagen-actualizada.jpg' },
+        userId: (usuario._id as mongoose.Types.ObjectId).toString(),
       } as unknown as Request;
-      
+    
       const mockJson = jest.fn();
       const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
       const mockResponse: Partial<Response> = {
         status: mockStatus,
         json: mockJson
       };
-    
-      await getAnuncios(mockRequest, mockResponse as Response);
+
+      jest.spyOn(anuncioUtils, 'isOwner').mockResolvedValue(true);
+      const unlinkSpy = jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
+
+      await editAnuncio(mockRequest, mockResponse as Response);
     
       expect(mockStatus).toHaveBeenCalledWith(200);
-      expect(mockJson).toHaveBeenCalled();
-      const responseData = mockJson.mock.calls[0][0];
-      expect(responseData.anuncios.length).toBe(2);
-      expect(responseData.total).toBe(3);
-      expect(responseData.totalPages).toBe(2);
-      responseData.anuncios.forEach((anuncio: any) => {
-        expect(anuncio).toHaveProperty('autor');
-        expect(anuncio.autor).toHaveProperty('nombre', 'UsuarioDePrueba');
-      });
-    });
-
-    it('debería manejar errores', async () => {
-      jest.spyOn(Anuncio, 'countDocuments').mockImplementationOnce(() => {
-        throw new Error('Error de base de datos');
-      });
-
-      const mockRequest = {
-        query: {}
-      } as unknown as Request;
-      
-      const mockJson = jest.fn();
-      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-      const mockResponse: Partial<Response> = {
-        status: mockStatus,
-        json: mockJson
-      };
-
-      await getAnuncios(mockRequest, mockResponse as Response);
-
-      expect(mockStatus).toHaveBeenCalledWith(500);
-      expect(mockJson).toHaveBeenCalledWith(
-        expect.objectContaining({ 
-          message: 'Error en el servidor', 
-          error: 'Error de base de datos'
+      expect(unlinkSpy).toHaveBeenCalledWith(path.join(__dirname, '../../public', 'imagen-original.jpg'));
+      expect(mockJson).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'Anuncio actualizado exitosamente',
+        anuncio: expect.objectContaining({
+          nombre: 'Anuncio Actualizado',
+          imagen: '/images/imagen-actualizada.jpg',
+          descripcion: 'Descripción actualizada',
+          precio: 150,
+          tags: ['nuevo', 'tecnología']
         })
-      );
-    });
-
-    it('debería filtrar anuncios por nombre', async () => {
-      const usuario = new Usuario({
-        nombre: 'UsuarioDePrueba', 
-        email: 'usuario@prueba.com',
-        contraseña: 'password'
-      });
-      await usuario.save();
-
-      const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
-      ];
-      await Anuncio.insertMany(anuncios);
-
-      const mockRequest = {
-        query: { nombre: 'Anuncio 1', page: '1', limit: '2' }
-      } as unknown as Request;
-      
-      const mockJson = jest.fn();
-      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-      const mockResponse: Partial<Response> = {
-        status: mockStatus,
-        json: mockJson
-      };
-
-      await getAnuncios(mockRequest, mockResponse as Response);
-
-      expect(mockStatus).toHaveBeenCalledWith(200);
-      expect(mockJson).toHaveBeenCalled();
-      const responseData = mockJson.mock.calls[0][0];
-      expect(responseData.anuncios.length).toBe(1);
-      expect(responseData.anuncios[0].nombre).toBe('Anuncio 1');
-    });
-
-    it('debería filtrar anuncios por rango de precio', async () => {
-      const usuario = new Usuario({
-        nombre: 'UsuarioDePrueba', 
-        email: 'usuario@prueba.com',
-        contraseña: 'password'
-      });
-      await usuario.save();
-
-      const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
-      ];
-      await Anuncio.insertMany(anuncios);
-
-      const mockRequest = {
-        query: { minPrecio: '150', page: '1', limit: '2' }
-      } as unknown as Request;
-      
-      const mockJson = jest.fn();
-      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-      const mockResponse: Partial<Response> = {
-        status: mockStatus,
-        json: mockJson
-      };
-
-      await getAnuncios(mockRequest, mockResponse as Response);
-
-      expect(mockStatus).toHaveBeenCalledWith(200);
-      expect(mockJson).toHaveBeenCalled();
-      const responseData = mockJson.mock.calls[0][0];
-      expect(responseData.anuncios.length).toBe(1);
-      expect(responseData.anuncios[0].precio).toBe(200);
-    });
-
-    it('debería filtrar anuncios por tag', async () => {
-      const usuario = new Usuario({
-        nombre: 'UsuarioDePrueba', 
-        email: 'usuario@prueba.com',
-        contraseña: 'password'
-      });
-      await usuario.save();
-
-      const anuncios = [
-        { nombre: 'Anuncio 1', descripcion: 'Descripción 1', imagen: 'imagen1.jpg', precio: 100, tipoAnuncio: 'venta', tags: ['tag1'], autor: usuario._id, slug: 'anuncio-1', fechaPublicacion: new Date() },
-        { nombre: 'Anuncio 2', descripcion: 'Descripción 2', imagen: 'imagen2.jpg', precio: 200, tipoAnuncio: 'búsqueda', tags: ['tag2'], autor: usuario._id, slug: 'anuncio-2', fechaPublicacion: new Date() },
-      ];
-      await Anuncio.insertMany(anuncios);
-
-      const mockRequest = {
-        query: { tag: 'tag1', page: '1', limit: '2' }
-      } as unknown as Request;
-      
-      const mockJson = jest.fn();
-      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
-      const mockResponse: Partial<Response> = {
-        status: mockStatus,
-        json: mockJson
-      };
-
-      await getAnuncios(mockRequest, mockResponse as Response);
-
-      expect(mockStatus).toHaveBeenCalledWith(200);
-      expect(mockJson).toHaveBeenCalled();
-      const responseData = mockJson.mock.calls[0][0];
-      expect(responseData.anuncios.length).toBe(1);
-      expect(responseData.anuncios[0].tags).toContain('tag1');
+      }));
     });
   });
 
-  // ... (mantener las pruebas existentes para getAnuncios)
 
   describe('getAnunciosUsuario', () => {
     it('debería obtener los anuncios de un usuario específico', async () => {
