@@ -73,7 +73,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     // Enviar respuesta
     res.json({
       success: true,
-      token,
+      token: token,
       usuario: {
         id: usuario._id,
         nombre: usuario.nombre,

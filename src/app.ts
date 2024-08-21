@@ -3,10 +3,6 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
-
-// Cargar variables de entorno
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
 import anuncioRoutes from './routes/anuncioRoutes';
@@ -17,15 +13,26 @@ import helmet from 'helmet';
 import { AppError, NotFoundError } from './utils/errors';
 import { getImage } from './controllers/imageController';
 
+// Cargar variables de entorno
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
 // Leer el archivo swagger.json
 const swaggerPath = path.resolve(__dirname, '../swagger.json');
 const swaggerDocument = JSON.parse(fs.readFileSync(swaggerPath, 'utf-8'));
 
 const app = express();
 
+// Middleware para loggear headers
+app.use((req, res, next) => {
+  console.log('Request headers:', req.headers);
+  next();
+});
+
 // Middleware
 app.use(helmet()); // Middleware de seguridad
 app.use(morgan('dev')); // Middleware de logging
+
+// Configuración de CORS
 app.use(
   cors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
@@ -48,12 +55,19 @@ app.use((req, res, next) => {
 app.use(cache);
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Servir archivos estáticos desde la carpeta public
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Ruta para servir imágenes específicas
 app.get('/images/:imageName', getImage);
+
+// Middleware para loggear rutas
+app.use((req, res, next) => {
+  console.log(`Route accessed: ${req.method} ${req.path}`);
+  next();
+});
 
 // Rutas
 app.use('/api/auth', authRoutes);
@@ -75,11 +89,9 @@ app.use((req, res, next) => {
 
 // Manejo de errores global
 app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
-  console.error(err);
-
+  console.error('Error stack:', err.stack);
   const status = err.status || 500;
   const message = err.message || 'Algo salió mal';
-
   res.status(status).json({
     success: false,
     status,
