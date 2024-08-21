@@ -4,7 +4,7 @@ import Anuncio from '../models/Anuncio';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../config/email';
 import { BadRequestError, NotFoundError, ConflictError } from '../utils/errors';
-import { checkUndefined, isValidName } from '../utils/helpers';
+import { checkUndefined, isValidName, isValidPassword } from '../utils/helpers';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -78,7 +78,7 @@ export const updatePass = async (
   const userId = req.userId;
 
   try {
-    if (newPass.length < 6) {
+    if (isValidPassword(newPass)) {
       throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
     }
     const user = await Usuario.findOne({ _id: userId });

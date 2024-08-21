@@ -9,13 +9,10 @@ export const checkUndefined = (data: { [key: string]: string | undefined }): str
   return isUndefined;
 };
 
-//controller/authController linea 11
 export const isValidName = (name: string): Boolean => {
   return !/^[a-zA-Z0-9_-]+$/.test(name);
 };
 
-//controller/authController linea 15
-//controller/userController linea 81
 export const isValidPassword = (password: string): Boolean => {
   return password.length < 6;
 };
