@@ -3,7 +3,8 @@ import Usuario from '../models/Usuario';
 import Anuncio from '../models/Anuncio';
 import jwt from 'jsonwebtoken';
 import { sendEmail } from '../config/email';
-import { BadRequestError, NotFoundError } from '../utils/errors';
+import { BadRequestError, NotFoundError, ConflictError } from '../utils/errors';
+import { checkUndefined, isValidName } from '../utils/helpers';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -88,7 +89,7 @@ export const updatePass = async (
 
     const passwordsMatch = await user.compararContraseña(oldPass);
     if (!passwordsMatch) {
-      throw new BadRequestError('La contraseña actual no es correcta')
+      throw new BadRequestError('La contraseña actual no es correcta');
     }
 
     user.contraseña = newPass;
@@ -103,7 +104,7 @@ export const updatePass = async (
 export const deleteAccount = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const userId = req.params.id;
@@ -121,6 +122,60 @@ export const deleteAccount = async (
     await Usuario.findByIdAndDelete(userId);
 
     res.status(200).json({ message: 'Cuenta de usuario eliminada con éxito' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUserProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const { name, email } = req.body;
+    const userId = req.userId;
+    const isUndefined: string[] = checkUndefined({ name, email });
+    isUndefined.length === 2
+      ? () => {
+          throw new BadRequestError('Email y contraseña invalidos');
+        }
+      : undefined;
+
+    //Primero nos aseguramos que no haya conflictos con los nuevos valores
+    const userExists = await Usuario.findOne({ $or: [{ name }, { email }] });
+    if (userExists) {
+      throw new ConflictError('El email o nombre de usuario ya está en uso');
+    }
+
+    //Comprobamos que el usuario exista
+    const user = await Usuario.findOne({ _id: userId });
+    if (!user) {
+      throw new NotFoundError('Usuario no encontrado');
+    }
+
+    //si name es distinto de undefined chequeo que sea un nombre valido
+    if (!isUndefined.includes('name')) {
+      if (isValidName(name)) {
+        throw new BadRequestError('Nombre de usuario inválido');
+      }
+      user.nombre = name;
+
+      //si name es distinto de undefined actualizo y envio email
+      if (!isUndefined.includes('email')) {
+        user.email = email;
+        const emailOptions = {
+          to: email,
+          subject: 'Actualizacion de correo electronico',
+          text: `Se ha actualizado el correo electronico`,
+          html: `<p>Se ha actualizado el correo electronico</p>`,
+        };
+        sendEmail(emailOptions);
+      }
+      user.save();
+    }
+
+    res.status(200).send('Datos actualizados correctamente');
   } catch (error) {
     next(error);
   }
