@@ -50,7 +50,7 @@ export const resetPass = async (req: Request, res: Response, next: NextFunction)
   const newPassword = req.body.newPassword;
 
   try {
-    if (newPassword.length < 6) {
+    if (isValidPassword(newPassword)) {
       throw new BadRequestError('La contraseña debe tener al menos 6 caracteres');
     }
 
