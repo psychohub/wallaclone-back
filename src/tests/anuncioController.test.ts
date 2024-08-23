@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose, { Model, Types } from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { getAnuncios, getAnunciosUsuario, editAnuncio } from '../controllers/anuncioController';
+import { getAnuncios, getAnunciosUsuario, editAnuncio, getAnuncio, deleteAnuncio } from '../controllers/anuncioController';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
 import * as anuncioUtils from '../utils/anuncio';
@@ -456,6 +456,153 @@ describe('Anuncio Controller', () => {
       expect(responseData.anuncios[1].nombre).toBe('Anuncio 2');
     });
   });
+
+  // Pruebas para getAnuncio
+  describe('getAnuncio', () => {
+    it('debería obtener un anuncio por su slug', async () => {
+      const usuario = new Usuario({
+        nombre: 'UsuarioDePrueba',
+        email: 'usuario@prueba.com',
+        contraseña: 'password'
+      });
+      await usuario.save();
+
+      const anuncio = await Anuncio.create({
+        nombre: 'Anuncio de Prueba',
+        descripcion: 'Descripción de prueba',
+        imagen: 'imagen.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario._id,
+        slug: 'anuncio-de-prueba',
+        fechaPublicacion: new Date()
+      });
+
+      const mockRequest = {
+        params: { slug: 'anuncio-de-prueba' }
+      } as unknown as Request;
+
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockJson).toHaveBeenCalled();
+      const responseData = mockJson.mock.calls[0][0];
+      expect(responseData.result).toHaveProperty('nombre', 'Anuncio de Prueba');
+      expect(responseData.result).toHaveProperty('slug', 'anuncio-de-prueba');
+    });
+
+    it('debería manejar el caso de anuncio no encontrado', async () => {
+      const mockRequest = {
+        params: { slug: 'anuncio-inexistente' }
+      } as unknown as Request;
+
+      const mockJson = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ json: mockJson });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        json: mockJson
+      };
+
+      await getAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200); // Aquí puedes ajustar según cómo manejes este caso en el controlador
+      expect(mockJson).toHaveBeenCalledWith({ result: null });
+    });
+  });
+
+  // Pruebas para deleteAnuncio
+  describe('deleteAnuncio', () => {
+    it('debería eliminar un anuncio si el usuario es el propietario', async () => {
+      const usuario = await Usuario.create({
+        nombre: 'UsuarioDePrueba',
+        email: 'usuario@prueba.com',
+        contraseña: 'password',
+      });
+
+      const anuncio = await Anuncio.create({
+        nombre: 'Anuncio a eliminar',
+        descripcion: 'Descripción del anuncio a eliminar',
+        imagen: 'imagen.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario._id,
+        slug: 'anuncio-a-eliminar',
+      });
+
+      const userIdAsString = (usuario._id as mongoose.Types.ObjectId).toString();
+
+      const mockRequest = {
+        params: { anuncioId: anuncio._id },
+        userId: userIdAsString,
+      } as unknown as Request;
+
+      const mockSend = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ send: mockSend });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        send: mockSend,
+      };
+
+      await deleteAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(200);
+      expect(mockSend).toHaveBeenCalledWith('Anuncio eliminado correctamente');
+
+      const anuncioEliminado = await Anuncio.findById(anuncio._id);
+      expect(anuncioEliminado).toBeNull();
+    });
+
+    it('debería devolver un error si el usuario no es el propietario', async () => {
+      const usuario1 = await Usuario.create({
+        nombre: 'UsuarioDePrueba1',
+        email: 'usuario1@prueba.com',
+        contraseña: 'password',
+      });
+
+      const usuario2 = await Usuario.create({
+        nombre: 'UsuarioDePrueba2',
+        email: 'usuario2@prueba.com',
+        contraseña: 'password',
+      });
+
+      const anuncio = await Anuncio.create({
+        nombre: 'Anuncio a eliminar',
+        descripcion: 'Descripción del anuncio a eliminar',
+        imagen: 'imagen.jpg',
+        precio: 100,
+        tipoAnuncio: 'venta',
+        autor: usuario1._id,
+        slug: 'anuncio-a-eliminar',
+      });
+
+      const userIdAsString = (usuario2._id as mongoose.Types.ObjectId).toString();
+
+      const mockRequest = {
+        params: { anuncioId: anuncio._id },
+        userId: userIdAsString,
+      } as unknown as Request;
+
+      const mockSend = jest.fn();
+      const mockStatus = jest.fn().mockReturnValue({ send: mockSend });
+      const mockResponse: Partial<Response> = {
+        status: mockStatus,
+        send: mockSend,
+      };
+
+      await deleteAnuncio(mockRequest, mockResponse as Response);
+
+      expect(mockStatus).toHaveBeenCalledWith(403); // O 401 dependiendo de cómo manejes la autorización
+      expect(mockSend).toHaveBeenCalledWith('No autorizado para eliminar este anuncio');
+
+      const anuncioNoEliminado = await Anuncio.findById(anuncio._id);
+      expect(anuncioNoEliminado).not.toBeNull();
+    });
+  });
 });
-
-
