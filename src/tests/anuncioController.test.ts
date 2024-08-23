@@ -585,7 +585,7 @@ describe('Anuncio Controller', () => {
       const userIdAsString = (usuario._id as mongoose.Types.ObjectId).toString();
 
       const mockRequest = {
-        params: { anuncioId: anuncio._id.toString() },
+        params: { anuncioId: anuncio._id },
         userId: userIdAsString,
       } as unknown as Request;
 
@@ -631,7 +631,7 @@ describe('Anuncio Controller', () => {
       const userIdAsString = (usuario2._id as mongoose.Types.ObjectId).toString();
 
       const mockRequest = {
-        params: { anuncioId: anuncio._id.toString() },
+        params: { anuncioId: anuncio._id },
         userId: userIdAsString,
       } as unknown as Request;
 
