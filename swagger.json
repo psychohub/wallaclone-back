@@ -141,10 +141,10 @@
         }
       }
     },
-    "/api/user/recuperar-contrasena": {
+    "/api/users/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
-        "tags": ["User"],
+        "tags": ["Users"],
         "requestBody": {
           "required": true,
           "content": {
@@ -182,10 +182,10 @@
         }
       }
     },
-    "/api/user/restablecer-contrasena": {
+    "/api/users/restablecer-contrasena": {
       "post": {
         "summary": "Reestablece la contraseña de un usuario existente",
-        "tags": ["User"],
+        "tags": ["Users"],
         "parameters": [
           {
             "name": "token",
@@ -233,10 +233,10 @@
         }
       }
     },
-    "/api/user/actualizar-contrasena": {
+    "/api/users/actualizar-contrasena": {
       "put": {
         "summary": "Endpoint para cambiar la contraseña de un usuario ya logueado",
-        "tags": ["User"],
+        "tags": ["Users"],
         "security": {
           "bearerAuth": ["Authorization"]
         },

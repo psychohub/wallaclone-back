@@ -305,10 +305,8 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 
 const createAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log('userId in controller:', req.userId);  
-
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
-    const imagen = req.file ? `${req.file.filename}` : null;
+    const imagen = req.file ? req.file.filename : null;
     
     if (!req.userId) {
       res.status(401).json({ message: 'Usuario no autenticado' });
@@ -361,7 +359,7 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
     }
 
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
-    const imagen = req.file ? `/images/${req.file.filename}` : undefined;
+    const imagen = req.file ? req.file.filename : undefined;
 
     if (!req.userId) {
       throw new UnauthorizedError('Usuario no autenticado');
