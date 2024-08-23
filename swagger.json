@@ -141,10 +141,10 @@
         }
       }
     },
-    "/api/user/recuperar-contrasena": {
+    "/api/users/recuperar-contrasena": {
       "post": {
         "summary": "Recupera la contraseña de usuario existente",
-        "tags": ["User"],
+        "tags": ["Users"],
         "requestBody": {
           "required": true,
           "content": {
@@ -182,10 +182,10 @@
         }
       }
     },
-    "/api/user/restablecer-contrasena": {
+    "/api/users/restablecer-contrasena": {
       "post": {
         "summary": "Reestablece la contraseña de un usuario existente",
-        "tags": ["User"],
+        "tags": ["Users"],
         "parameters": [
           {
             "name": "token",
@@ -233,10 +233,10 @@
         }
       }
     },
-    "/api/user/actualizar-contrasena": {
+    "/api/users/actualizar-contrasena": {
       "put": {
         "summary": "Endpoint para cambiar la contraseña de un usuario ya logueado",
-        "tags": ["User"],
+        "tags": ["Users"],
         "security": {
           "bearerAuth": ["Authorization"]
         },
@@ -677,6 +677,66 @@
         }
       }
     },
+    "/api/anuncios/item/{id}": {
+  "put": {
+    "tags": ["Anuncios"],
+    "summary": "Editar un anuncio existente",
+    "security": [{ "bearerAuth": [] }],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "id",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "ID del anuncio a editar"
+      }
+    ],
+    "requestBody": {
+      "content": {
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "nombre": { "type": "string" },
+              "descripcion": { "type": "string" },
+              "tipoAnuncio": { "type": "string", "enum": ["venta", "búsqueda"] },
+              "precio": { "type": "number" },
+              "tags": { 
+                "type": "array", 
+                "items": { "type": "string" },
+                "description": "Lista de tags separados por comas"
+              },
+              "imagen": { "type": "string", "format": "binary" }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Anuncio actualizado exitosamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": { "type": "string" },
+                "anuncio": { "$ref": "#/components/schemas/Anuncio" }
+              }
+            }
+          }
+        }
+      },
+      "400": { "description": "Datos inválidos" },
+      "401": { "description": "No autorizado" },
+      "403": { "description": "Prohibido - No tienes permiso para editar este anuncio" },
+      "404": { "description": "Anuncio no encontrado" },
+      "500": { "description": "Error del servidor" }
+    }
+  }
+},
     "/api/anuncios/delete/{anuncioId}": {
       "delete": {
         "summary": "Eliminar un anuncio específico",

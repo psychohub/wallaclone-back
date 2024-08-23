@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import Usuario, { IUsuario } from '../models/Usuario';
-import { BadRequestError, ForbiddenError } from '../utils/errors';
+import { AppError, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError} from '../utils/errors';
 import { EstadosAnuncio, isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
 
@@ -305,10 +305,8 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 
 const createAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
-    console.log('userId in controller:', req.userId);  
-
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
-    const imagen = req.file ? `${req.file.filename}` : null;
+    const imagen = req.file ? req.file.filename : null;
     
     if (!req.userId) {
       res.status(401).json({ message: 'Usuario no autenticado' });
@@ -347,6 +345,76 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
     } else {
       res.status(500).json({
         message: 'Error desconocido al crear el anuncio'
+      });
+    }
+  }
+};
+
+const editAnuncio = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new BadRequestError('Formato de ID inválido');
+    }
+
+    const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
+    const imagen = req.file ? req.file.filename : undefined;
+
+    if (!req.userId) {
+      throw new UnauthorizedError('Usuario no autenticado');
+    }
+
+    const userIsOwner = await isOwner(id, req.userId);
+    if (!userIsOwner) {
+      throw new ForbiddenError('No tienes permiso para editar este anuncio');
+    }
+
+    const anuncioExistente = await Anuncio.findById(id);
+    if (!anuncioExistente) {
+      throw new NotFoundError('Anuncio no encontrado');
+    }
+
+    const datosActualizados: Partial<IAnuncio> = {
+      nombre: nombre || anuncioExistente.nombre,
+      descripcion: descripcion || anuncioExistente.descripcion,
+      tipoAnuncio: tipoAnuncio || anuncioExistente.tipoAnuncio,
+      precio: precio !== undefined ? precio : anuncioExistente.precio,
+      tags: tags || anuncioExistente.tags,
+    };
+
+    if (imagen) {
+      datosActualizados.imagen = imagen;
+    }
+
+    // Actualizar el slug solo si el nombre ha cambiado
+    if (nombre && nombre !== anuncioExistente.nombre) {
+      datosActualizados.slug = await createSlug(nombre);
+    }
+
+    const anuncioActualizado = await Anuncio.findByIdAndUpdate(
+      id,
+      datosActualizados,
+      { new: true, runValidators: true }
+    );
+
+    if (!anuncioActualizado) {
+      throw new NotFoundError('Anuncio no encontrado después de la actualización');
+    }
+
+    res.status(200).json({
+      message: 'Anuncio actualizado exitosamente',
+      anuncio: anuncioActualizado
+    });
+  } catch (error) {
+    console.error('Error al actualizar el anuncio:', error);
+
+    if (error instanceof AppError) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({
+        message: 'Error en el servidor',
+        error: error instanceof Error ? error.message : 'Error desconocido'
       });
     }
   }
@@ -428,4 +496,4 @@ const getStatusAnuncio = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export { LeanAnuncio, getAnuncios, getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio, changeStatusAnuncio, getStatusAnuncio };
+export { LeanAnuncio, getAnuncios, getAnunciosUsuario, getAnuncio, deleteAnuncio, createAnuncio, editAnuncio, changeStatusAnuncio, getStatusAnuncio };
