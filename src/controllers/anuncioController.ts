@@ -444,15 +444,15 @@ const changeStatusAnuncio = async (req: Request, res: Response): Promise<void> =
     if (!anuncio) {
       throw new BadRequestError('No existe un anuncio con ese id');
     }
+    
+    if (anuncio.estado === EstadosAnuncio.VENDIDO) {
+      throw new BadRequestError('El anuncio se encuentra en estado vendido, por lo que no puede volver a estar disponible');
+    }
 
     if (estado === anuncio.estado) {
       throw new BadRequestError('El estado enviado es igual al estado actual');
     }
-
-    if (anuncio.estado === EstadosAnuncio.VENDIDO) {
-      throw new BadRequestError('El anuncio se encuentra en estado vendido, por lo que no puede cambiar de estado');
-    }
-
+    
     anuncio.estado = estado;
     anuncio.save();
     

@@ -830,10 +830,10 @@
         ]
       }
     },
-    "/api/user/actualizar-datos": {
+    "/api/users/actualizar-datos": {
       "put": {
         "summary": "Endpoint para cambiar el nombre de usuario y/o el email",
-        "tags": ["User"],
+        "tags": ["Users"],
         "security": {
           "bearerAuth": ["Authorization"]
         },
