@@ -923,7 +923,210 @@
           }
         }
       }
-    }
+    },
+    "/api/chat": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Guardar un mensaje en el chat",
+        "description": "Guarda un mensaje en el chat asociado a un anuncio",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "anuncioId": {
+                    "type": "string",
+                    "description": "ID del anuncio asociado al chat"
+                  },
+                  "contenido": {
+                    "type": "string",
+                    "description": "Contenido del mensaje"
+                  }
+                },
+                "required": ["anuncioId", "contenido"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mensaje guardado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "chat": {
+                      "type": "object",
+                      "properties": {
+                        "_id": {
+                          "type": "string"
+                        },
+                        "anuncio": {
+                          "type": "string"
+                        },
+                        "participantes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "mensajes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "emisor": {
+                                "type": "string"
+                              },
+                              "contenido": {
+                                "type": "string"
+                              },
+                              "fechaEnvio": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "fechaCreacion": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de solicitud"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Anuncio no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/api/chat/{anuncioId}": {
+  "get": {
+    "summary": "Obtener mensajes de un chat",
+    "tags": ["Chat"],
+    "parameters": [
+      {
+        "in": "path",
+        "name": "anuncioId",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "ID del anuncio asociado al chat"
+      },
+      {
+        "in": "query",
+        "name": "page",
+        "schema": {
+          "type": "integer",
+          "default": 1
+        },
+        "description": "Número de página"
+      },
+      {
+        "in": "query",
+        "name": "limit",
+        "schema": {
+          "type": "integer",
+          "default": 20
+        },
+        "description": "Número de mensajes por página"
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "Mensajes del chat obtenidos exitosamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "anuncio": {
+                  "type": "object",
+                  "properties": {
+                    "_id": { "type": "string" },
+                    "nombre": { "type": "string" },
+                    "imagen": { "type": "string" }
+                  }
+                },
+                "participantes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string" },
+                      "nombre": { "type": "string" },
+                      "email": { "type": "string" }
+                    }
+                  }
+                },
+                "mensajes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "emisor": { "type": "string" },
+                      "contenido": { "type": "string" },
+                      "fechaEnvio": { "type": "string", "format": "date-time" },
+                      "leido": { "type": "boolean" }
+                    }
+                  }
+                },
+                "paginacion": {
+                  "type": "object",
+                  "properties": {
+                    "pagina": { "type": "integer" },
+                    "totalPaginas": { "type": "integer" },
+                    "totalMensajes": { "type": "integer" },
+                    "mensajesPorPagina": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Error de solicitud"
+      },
+      "401": {
+        "description": "No autorizado"
+      },
+      "404": {
+        "description": "Chat no encontrado"
+      },
+      "500": {
+        "description": "Error del servidor"
+      }
+    },
+    "security": [
+      {
+        "bearerAuth": []
+      }
+    ]
+  }
+}
   },
   "components": {
     "schemas": {
