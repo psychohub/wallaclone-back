@@ -25,15 +25,13 @@ export const connectWebSocket = (
 
   io.use((socket, next) => {
     try {
-      const authHeader = socket.handshake.headers.authorization as string;
-
+      const authHeader = socket.handshake.auth.token as string;
       //Este fragmento de codigo se puede refatorizar porque se utiliza en jwtAuth
       const parts = authHeader.split(' ');
       if (parts.length !== 2 || parts[0] !== 'Bearer') {
         throw new UnauthorizedError('Token error');
       }
       const token = parts[1];
-
       if (!token) {
         throw new UnauthorizedError('Usuario no autenticado');
       }
