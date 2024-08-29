@@ -10,6 +10,13 @@ export const connectWebSocket = (
 ) => {
   const server = http.createServer(app);
   const io = new Server(server, {
+    // Configuración de CORS
+    cors: {
+      origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    },
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000, //2m
       skipMiddlewares: true,
