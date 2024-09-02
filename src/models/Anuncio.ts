@@ -9,7 +9,7 @@ export interface IAnuncio extends Document {
   precio: number;
   tipoAnuncio: 'venta' | 'búsqueda';
   tags: string[];
-  autor: IUsuario['_id']; 
+  autor: mongoose.Types.ObjectId;
   fechaPublicacion: Date;
   slug: string;
   estado: string;

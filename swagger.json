@@ -1020,7 +1020,113 @@
           }
         }
       }
+      },
+      "/api/chat/{anuncioId}": {
+    "get": {
+      "summary": "Obtener mensajes de un chat",
+      "tags": ["Chat"],
+      "parameters": [
+        {
+          "in": "path",
+          "name": "anuncioId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "ID del anuncio asociado al chat"
+        },
+        {
+          "in": "query",
+          "name": "page",
+          "schema": {
+            "type": "integer",
+            "default": 1
+          },
+          "description": "Número de página"
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "schema": {
+            "type": "integer",
+            "default": 20
+          },
+          "description": "Número de mensajes por página"
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Mensajes del chat obtenidos exitosamente",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "anuncio": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string" },
+                      "nombre": { "type": "string" },
+                      "imagen": { "type": "string" }
+                    }
+                  },
+                  "participantes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "_id": { "type": "string" },
+                        "nombre": { "type": "string" },
+                        "email": { "type": "string" }
+                      }
+                    }
+                  },
+                  "mensajes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "emisor": { "type": "string" },
+                        "contenido": { "type": "string" },
+                        "fechaEnvio": { "type": "string", "format": "date-time" },
+                        "leido": { "type": "boolean" }
+                      }
+                    }
+                  },
+                  "paginacion": {
+                    "type": "object",
+                    "properties": {
+                      "pagina": { "type": "integer" },
+                      "totalPaginas": { "type": "integer" },
+                      "totalMensajes": { "type": "integer" },
+                      "mensajesPorPagina": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Error de solicitud"
+        },
+        "401": {
+          "description": "No autorizado"
+        },
+        "404": {
+          "description": "Chat no encontrado"
+        },
+        "500": {
+          "description": "Error del servidor"
+        }
+      },
+      "security": [
+        {
+          "bearerAuth": []
+        }
+      ]
     }
+   }
   },
   "components": {
     "schemas": {
