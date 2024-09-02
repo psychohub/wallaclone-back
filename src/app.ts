@@ -14,6 +14,7 @@ import { AppError, NotFoundError } from './utils/errors';
 import { getImage } from './controllers/imageController';
 import chatRoutes from './routes/chatRoutes';
 
+
 // Cargar variables de entorno
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
@@ -74,7 +75,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/anuncios', anuncioRoutes);
-app.use('/api/chat', chatRoutes); 
+app.use('/api/chat', chatRoutes);
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

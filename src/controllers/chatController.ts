@@ -27,12 +27,9 @@ export const guardarChat = async (req: Request, res: Response, next: NextFunctio
             throw new NotFoundError('Anuncio no encontrado');
         }
 
-        console.log(`Anuncio encontrado: ${anuncio.nombre}`);
-
         let chat = await Chat.findOne({ anuncio: anuncioObjectId, participantes: userObjectId });
 
         if (chat) {
-            console.log('Chat existente encontrado, añadiendo nuevo mensaje');
             chat.mensajes.push({
                 emisor: userObjectId,
                 contenido,
@@ -40,7 +37,6 @@ export const guardarChat = async (req: Request, res: Response, next: NextFunctio
                 leido: false
             });
         } else {
-            console.log('Creando nuevo chat');
             const otherParticipant = anuncio.autor.toString() !== userId
                 ? anuncio.autor
                 : userObjectId;
