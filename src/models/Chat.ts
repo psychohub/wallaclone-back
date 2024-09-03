@@ -22,10 +22,7 @@ const ChatSchema: Schema = new Schema({
     emisor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
     contenido: { type: String, required: true },
     fechaEnvio: { type: Date, default: Date.now },
-    leido: { type: Boolean, default: false }
-    emisor: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
-    contenido: { type: String, required: true },
-    fechaEnvio: { type: Date, default: Date.now }
+    leido: { type: Boolean, default: false },
   }]
 });
 
