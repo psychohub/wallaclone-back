@@ -34,16 +34,6 @@ app.use((req, res, next) => {
 app.use(helmet()); // Middleware de seguridad
 app.use(morgan('dev')); // Middleware de logging
 
-// Configuración de CORS
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:3001',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  }),
-);
-
 // Middleware de Content Security Policy
 app.use((req, res, next) => {
   res.setHeader(
