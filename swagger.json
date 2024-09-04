@@ -850,7 +850,7 @@
                     "format": "text",
                     "description": "Nuevo nombre"
                   },
-                  "newPass": {
+                  "email": {
                     "type": "string",
                     "format": "text",
                     "description": "Nuevo email"
