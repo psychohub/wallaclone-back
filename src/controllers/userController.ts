@@ -135,46 +135,64 @@ export const updateUserProfile = async (
   try {
     const { name, email } = req.body;
     const userId = req.userId;
+
+    let isNewName = true;
+    let isNewEmail = true;
+
     const isUndefined: string[] = checkUndefined({ name, email });
     isUndefined.length === 2
-      ? () => {
-          throw new BadRequestError('Email y contraseña invalidos');
-        }
+      ? () => { throw new BadRequestError('Email y nombre de usuario inválidos') }
       : undefined;
-
-    //Primero nos aseguramos que no haya conflictos con los nuevos valores
-    const userExists = await Usuario.findOne({ $or: [{ name }, { email }] });
-    if (userExists) {
-      throw new ConflictError('El email o nombre de usuario ya está en uso');
-    }
-
+    
     //Comprobamos que el usuario exista
     const user = await Usuario.findOne({ _id: userId });
     if (!user) {
       throw new NotFoundError('Usuario no encontrado');
     }
 
-    //si name es distinto de undefined chequeo que sea un nombre valido
-    if (!isUndefined.includes('name')) {
+    //Chequeo qué campos se han modificado para hacer las validaciones solo sobre los campos modificados
+    if (user.nombre === name)
+      isNewName = false;
+    if (user.email === email)
+      isNewEmail = false;
+
+    if (!isNewName && !isNewEmail) {
+      throw new BadRequestError('Para cambiar el nombre de usuario y el email, se deben enviar nuevos valores');
+    }
+
+    //Valido el nuevo username y si es válido lo guardo
+    if (isNewName && !isUndefined.includes('name')) {
       if (isValidName(name)) {
         throw new BadRequestError('Nombre de usuario inválido');
       }
-      user.nombre = name;
 
-      //si name es distinto de undefined actualizo y envio email
-      if (!isUndefined.includes('email')) {
-        user.email = email;
-        const emailOptions = {
-          to: email,
-          subject: 'Actualizacion de correo electronico',
-          text: `Se ha actualizado el correo electronico`,
-          html: `<p>Se ha actualizado el correo electronico</p>`,
-        };
-        sendEmail(emailOptions);
+      const userExists = await Usuario.findOne({ nombre: name });
+      if (userExists) {
+        throw new ConflictError('El nombre de usuario ya está en uso');
       }
-      user.save();
+
+      user.nombre = name;
     }
 
+    //Valido el nuevo email y si es válido lo guardo
+    if (isNewEmail && !isUndefined.includes('email')) {
+      const userExists = await Usuario.findOne({ email });
+      if (userExists) {
+        throw new ConflictError('El email ya está en uso');
+      }
+
+      user.email = email;
+
+      const emailOptions = {
+        to: email,
+        subject: 'Actualización de correo electrónico',
+        text: `Se ha actualizado el correo electrónico`,
+        html: `<p>Se ha actualizado el correo electrónico</p>`,
+      };
+      sendEmail(emailOptions);
+    }
+    
+    user.save();
     res.status(200).send('Datos actualizados correctamente');
   } catch (error) {
     next(error);
