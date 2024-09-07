@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.645.0",
     "@mcabreradev/filter": "^3.1.4",
     "@types/nodemailer": "^6.4.15",
     "@types/socket.io": "^3.0.2",
