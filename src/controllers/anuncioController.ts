@@ -6,6 +6,7 @@ import Usuario, { IUsuario } from '../models/Usuario';
 import { AppError, UnauthorizedError, ForbiddenError, NotFoundError, BadRequestError} from '../utils/errors';
 import { EstadosAnuncio, isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
+import { uploadFileToS3 } from '../config/s3';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -306,7 +307,7 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 const createAnuncio = async (req: Request, res: Response): Promise<void> => {
   try {
     const { nombre, descripcion, tipoAnuncio, precio, tags } = req.body;
-    const imagen = req.file ? req.file.filename : null;
+    const imagen = req.file ? req.file : null;
     
     if (!req.userId) {
       res.status(401).json({ message: 'Usuario no autenticado' });
@@ -318,10 +319,17 @@ const createAnuncio = async (req: Request, res: Response): Promise<void> => {
     }
 
     const slug = await createSlug(nombre);
+    const filename = `${Date.now()}-${imagen.originalname}`;
+    
+    try {
+      await uploadFileToS3(imagen, filename);
+    } catch (error) {
+      console.log(error);
+    }
 
     const nuevoAnuncio: IAnuncio = new Anuncio({
       nombre,
-      imagen,
+      imagen: filename,
       descripcion,
       tipoAnuncio,
       precio,
