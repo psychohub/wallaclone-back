@@ -12,7 +12,7 @@ import {
 } from '../utils/errors';
 import { EstadosAnuncio, isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
-import { uploadFileToS3 } from '../controllers/s3Controller';
+import { presignedUrl, uploadFileToS3 } from '../controllers/s3Controller';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -255,6 +255,13 @@ const getAnuncio = async (req: Request, res: Response): Promise<void> => {
     const anuncio = await Anuncio.findOne({ slug: slug })
       .populate('autor', 'nombre email')
       .lean<LeanAnuncio>();
+
+    let clientUrl = null;
+    if (anuncio && anuncio.imagen) {
+      const key = anuncio.imagen;
+      clientUrl = await presignedUrl({ key });
+      anuncio.imagen = clientUrl;
+    }
 
     res.status(200).json({
       result: anuncio,
