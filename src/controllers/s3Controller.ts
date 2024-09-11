@@ -6,7 +6,7 @@ import s3Client from '../config/s3';
 export const uploadFileToS3 = async (file: Express.Multer.File, filename: string) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    Key: file.originalname,
+    Key: filename,
     Body: file.buffer,
   };
 
