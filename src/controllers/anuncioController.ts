@@ -92,25 +92,33 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
       .lean<AnuncioPopulated[]>()
       .exec();
 
-    const processedAnuncios = anuncios.map((anuncio) => ({
-      _id: (anuncio._id as mongoose.Types.ObjectId).toString(),
-      nombre: anuncio.nombre,
-      imagen: anuncio.imagen,
-      descripcion: anuncio.descripcion,
-      precio: anuncio.precio,
-      tipoAnuncio: anuncio.tipoAnuncio,
-      tags: anuncio.tags,
-      autor: anuncio.autor
-        ? {
-            _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
-            nombre: anuncio.autor.nombre,
-            email: anuncio.autor.email,
-          }
-        : null,
-      fechaPublicacion: anuncio.fechaPublicacion,
-      slug: anuncio.slug,
-      estado: anuncio.estado,
-    }));
+    const processedAnuncios = anuncios.map((anuncio) => {
+      if (anuncio.imagen) {
+        presignedUrl({ key: anuncio.imagen })
+          .then((url) => (anuncio.imagen = url))
+          .catch((error) => console.log(error));
+      }
+
+      return {
+        _id: (anuncio._id as mongoose.Types.ObjectId).toString(),
+        nombre: anuncio.nombre,
+        imagen: anuncio.imagen,
+        descripcion: anuncio.descripcion,
+        precio: anuncio.precio,
+        tipoAnuncio: anuncio.tipoAnuncio,
+        tags: anuncio.tags,
+        autor: anuncio.autor
+          ? {
+              _id: (anuncio.autor._id as mongoose.Types.ObjectId).toString(),
+              nombre: anuncio.autor.nombre,
+              email: anuncio.autor.email,
+            }
+          : null,
+        fechaPublicacion: anuncio.fechaPublicacion,
+        slug: anuncio.slug,
+        estado: anuncio.estado,
+      };
+    });
 
     res.status(200).json({
       anuncios: processedAnuncios,
@@ -205,25 +213,32 @@ const getAnunciosUsuario = async (req: Request, res: Response): Promise<void> =>
       .populate('autor', 'nombre email')
       .lean<LeanAnuncio[]>();
 
-    const processedAnuncios = anuncios.map((anuncio) => ({
-      _id: anuncio._id.toString(),
-      nombre: anuncio.nombre,
-      imagen: anuncio.imagen,
-      descripcion: anuncio.descripcion,
-      precio: anuncio.precio,
-      tipoAnuncio: anuncio.tipoAnuncio,
-      tags: anuncio.tags,
-      autor: anuncio.autor
-        ? {
-            _id: anuncio.autor._id.toString(),
-            nombre: anuncio.autor.nombre,
-            email: anuncio.autor.email,
-          }
-        : null,
-      fechaPublicacion: anuncio.fechaPublicacion,
-      slug: anuncio.slug,
-      estado: anuncio.estado,
-    }));
+    const processedAnuncios = anuncios.map((anuncio) => {
+      if (anuncio.imagen) {
+        presignedUrl({ key: anuncio.imagen })
+          .then((url) => (anuncio.imagen = url))
+          .catch((error) => console.log(error));
+      }
+      return {
+        _id: anuncio._id.toString(),
+        nombre: anuncio.nombre,
+        imagen: anuncio.imagen,
+        descripcion: anuncio.descripcion,
+        precio: anuncio.precio,
+        tipoAnuncio: anuncio.tipoAnuncio,
+        tags: anuncio.tags,
+        autor: anuncio.autor
+          ? {
+              _id: anuncio.autor._id.toString(),
+              nombre: anuncio.autor.nombre,
+              email: anuncio.autor.email,
+            }
+          : null,
+        fechaPublicacion: anuncio.fechaPublicacion,
+        slug: anuncio.slug,
+        estado: anuncio.estado,
+      };
+    });
 
     res.status(200).json({
       anuncios: processedAnuncios,
