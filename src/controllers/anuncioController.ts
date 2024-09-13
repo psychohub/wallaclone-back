@@ -56,7 +56,8 @@ const getAnuncios = async (req: Request, res: Response): Promise<void> => {
 
     // Filtro por tag
     if (tag) {
-      searchCriteria.tags = { $regex: tag, $options: 'i' };
+      const tagsArray = tag.split(',').map(t => t.trim()); 
+      searchCriteria.tags = { $in: tagsArray };  
     }
 
     // Filtro por rango de precio
