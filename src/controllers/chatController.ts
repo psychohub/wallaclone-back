@@ -198,3 +198,40 @@ export const getChatIdByAdvertId = async (req: Request, res: Response, next: Nex
   }
 };
 
+export const createChat = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { advertId } = req.body;  
+    const userId = req.userId;      
+
+    if (!advertId || !userId) {
+      throw new BadRequestError('AdvertId y UserId son requeridos');
+    }
+
+
+    const advert = await Anuncio.findById(advertId);
+    if (!advert) {
+      throw new NotFoundError('Anuncio no encontrado');
+    }
+
+
+    let chat = await Chat.findOne({ anuncio: advertId, participantes: userId });
+
+    if (!chat) {
+
+      chat = new Chat({
+        anuncio: advertId,
+        participantes: [userId, advert.autor],  
+        mensajes: [],
+      });
+
+      await chat.save();
+    }
+
+    res.status(201).json({
+      message: 'Chat creado exitosamente',
+      chatId: chat._id,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

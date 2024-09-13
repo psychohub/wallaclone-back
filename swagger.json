@@ -1173,7 +1173,58 @@
         }
       ]
     }
+  },
+  "/api/chat/create": {
+  "post": {
+    "summary": "Crear un nuevo chat para un anuncio",
+    "tags": ["Chat"],
+    "security": [{ "bearerAuth": [] }],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "advertId": {
+                "type": "string",
+                "description": "ID del anuncio asociado al chat"
+              }
+            },
+            "required": ["advertId"]
+          }
+        }
+      }
+    },
+    "responses": {
+      "201": {
+        "description": "Chat creado exitosamente",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "chatId": {
+                  "type": "string",
+                  "description": "ID del chat creado"
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Solicitud incorrecta"
+      },
+      "404": {
+        "description": "Anuncio no encontrado"
+      },
+      "500": {
+        "description": "Error del servidor"
+      }
+    }
   }
+}
   },
   "components": {
     "schemas": {
