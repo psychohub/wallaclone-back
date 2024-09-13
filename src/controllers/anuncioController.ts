@@ -12,7 +12,7 @@ import {
 } from '../utils/errors';
 import { EstadosAnuncio, isOwner } from '../utils/anuncio';
 import { createSlug } from '../utils/slug';
-import { presignedUrl, uploadFileToS3 } from '../controllers/s3Controller';
+import { presignedUrl, uploadFileToS3, deleteFile } from '../controllers/s3Controller';
 
 // Definir el tipo de respuesta con la población del autor
 interface AnuncioPopulated extends Omit<IAnuncio, 'autor'> {
@@ -309,7 +309,10 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
 
     const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
-      await Anuncio.deleteOne({ _id: anuncioId });
+      const anuncio = await Anuncio.findOneAndDelete({ _id: anuncioId });
+      // const key = anuncio?.imagen ? anuncio?.imagen : '';
+      const key = 'clean-code.jpg';
+      deleteFile(key);
     }
     res.status(200).send('Anuncio eliminado correctamente');
   } catch (error: unknown) {
