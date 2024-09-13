@@ -418,8 +418,10 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
       tags: tags || anuncioExistente.tags,
     };
 
+    let oldKey = '';
     if (imagen) {
       datosActualizados.imagen = imagen;
+      oldKey = anuncioExistente?.imagen ? anuncioExistente?.imagen : '';
     }
 
     // Actualizar el slug solo si el nombre ha cambiado
@@ -434,6 +436,11 @@ const editAnuncio = async (req: Request, res: Response): Promise<void> => {
 
     if (!anuncioActualizado) {
       throw new NotFoundError('Anuncio no encontrado después de la actualización');
+    }
+
+    if (oldKey !== '' && imagen && req.file) {
+      deleteFile(oldKey);
+      uploadFileToS3(req.file, imagen);
     }
 
     res.status(200).json({
