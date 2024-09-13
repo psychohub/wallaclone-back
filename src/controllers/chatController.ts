@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import mongoose, { Types } from 'mongoose';
-import Chat, { IChat } from '../models/Chat';
+import Chat from '../models/Chat';
 import Anuncio, { IAnuncio } from '../models/Anuncio';
 import { AppError, BadRequestError, NotFoundError, ForbiddenError } from '../utils/errors';
 
@@ -75,19 +75,13 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
 
-      if (!userId) {
-          throw new ForbiddenError('Usuario no autenticado');
-      }
-
-
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
           console.error(`ID de chat inválido: ${chatId}`);
           throw new BadRequestError('ID de chat inválido');
       }
-
  
       const chat = await Chat.findOne({ _id: chatId, participantes: userId })
-          .populate('anuncio', 'nombre')
+          .populate('anuncio')
           .populate('participantes', '_id nombre')
           .select('mensajes participantes anuncio');
 
@@ -95,7 +89,6 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
           console.error(`Chat no encontrado con ID: ${chatId}`);
           throw new NotFoundError('Chat no encontrado');
       }
-
 
       if (!isIAnuncio(chat.anuncio)) {
           console.error(`Anuncio no válido en chat con ID: ${chatId}`);
@@ -107,7 +100,7 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       const skip = (page - 1) * limit;
 
       const messages = chat.mensajes
-          .sort((a, b) => b.fechaEnvio.getTime() - a.fechaEnvio.getTime())
+          .sort((a, b) => a.fechaEnvio.getTime() - b.fechaEnvio.getTime())
           .slice(skip, skip + limit)
           .map(m => ({
               id: m._id,
@@ -117,10 +110,7 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
           }));
 
       res.status(200).json({
-          anuncio: {
-              id: chat.anuncio._id,
-              titulo: chat.anuncio.nombre
-          },
+          anuncio: chat.anuncio,
           participantes: chat.participantes,
           mensajes: messages,
           metadata: {
