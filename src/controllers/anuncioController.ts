@@ -310,8 +310,7 @@ const deleteAnuncio = async (req: Request, res: Response): Promise<void> => {
     const userIsOwner = await isOwner(anuncioId, userId);
     if (userIsOwner) {
       const anuncio = await Anuncio.findOneAndDelete({ _id: anuncioId });
-      // const key = anuncio?.imagen ? anuncio?.imagen : '';
-      const key = 'clean-code.jpg';
+      const key = anuncio?.imagen ? anuncio?.imagen : '';
       deleteFile(key);
     }
     res.status(200).send('Anuncio eliminado correctamente');
