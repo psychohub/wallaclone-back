@@ -73,7 +73,7 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       const { chatId } = req.params;
       const userId = req.userId;
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
+      const limit = parseInt(req.query.limit as string) || 50;
 
       if (!mongoose.Types.ObjectId.isValid(chatId)) {
           console.error(`ID de chat inválido: ${chatId}`);
@@ -100,8 +100,9 @@ export const getChatMessages = async (req: Request, res: Response, next: NextFun
       const skip = (page - 1) * limit;
 
       const messages = chat.mensajes
-          .sort((a, b) => a.fechaEnvio.getTime() - b.fechaEnvio.getTime())
+          .sort((a, b) => b.fechaEnvio.getTime() - a.fechaEnvio.getTime())
           .slice(skip, skip + limit)
+          .sort((a, b) => a.fechaEnvio.getTime() - b.fechaEnvio.getTime())
           .map(m => ({
               id: m._id,
               emisor: m.emisor,
