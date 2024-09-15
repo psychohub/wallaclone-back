@@ -830,6 +830,119 @@
         ]
       }
     },
+    "/api/favoritos": {
+      "post": {
+        "summary": "Agregar un anuncio a favoritos",
+        "tags": ["Favoritos"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "anuncioId": {
+                    "type": "string",
+                    "description": "ID del anuncio a agregar a favoritos"
+                  }
+                },
+                "required": ["anuncioId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anuncio agregado a favoritos exitosamente"
+          },
+          "400": {
+            "description": "Error de solicitud"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      },
+      "get": {
+        "summary": "Listar anuncios favoritos del usuario",
+        "tags": ["Favoritos"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de anuncios favoritos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "favoritos": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "anuncio": {
+                            "$ref": "#/components/schemas/Anuncio"
+                          },
+                          "fechaAgregado": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
+    "/api/favoritos/{anuncioId}": {
+      "delete": {
+        "summary": "Eliminar un anuncio de favoritos",
+        "tags": ["Favoritos"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "anuncioId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del anuncio a eliminar de favoritos"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anuncio eliminado de favoritos exitosamente"
+          },
+          "400": {
+            "description": "Error de solicitud"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "500": {
+            "description": "Error del servidor"
+          }
+        }
+      }
+    },
     "/api/users/actualizar-datos": {
       "put": {
         "summary": "Endpoint para cambiar el nombre de usuario y/o el email",
