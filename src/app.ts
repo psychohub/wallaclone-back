@@ -5,6 +5,7 @@ import fs from 'fs';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+import favoritoRoutes from './routes/favoritoRoutes';
 import anuncioRoutes from './routes/anuncioRoutes';
 import swaggerUi from 'swagger-ui-express';
 import cache from './middleware/cache';
@@ -70,6 +71,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/anuncios', anuncioRoutes);
 app.use('/api/chats', chatRoutes);
+app.use('/api/favoritos', favoritoRoutes);
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
