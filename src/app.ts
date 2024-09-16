@@ -70,7 +70,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/anuncios', anuncioRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/chats', chatRoutes);
 app.use('/api/favoritos', favoritoRoutes);
 
 // Swagger setup
